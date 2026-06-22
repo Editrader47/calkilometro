@@ -1,0 +1,3979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Calkilometro — La plataforma inteligente para el transporte independiente</title>
+  <meta name="description" content="La plataforma inteligente para el transporte independiente">
+  <meta name="theme-color" content="#030508">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Calkilometro">
+  <link rel="icon" type="image/png" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap');
+
+    /* ═══════════════════════════════════════════
+       VARIABLES DE TEMA — oscuro (defecto) / claro
+       Cubre 100% de los fondos, textos, bordes e inputs.
+       Ningún componente debe tener colores hardcodeados.
+    ═══════════════════════════════════════════ */
+    :root {
+      /* Fondos */
+      --ckm-bg          : #030508;
+      --ckm-panel       : #0b0f19;
+      --ckm-panel2      : #06090e;
+      --ckm-panel3      : #0d131f;
+      --ckm-display     : #000000;
+      /* Bordes */
+      --ckm-border      : #1e293b;
+      --ckm-border2     : #334155;
+      /* Texto */
+      --ckm-text        : #f1f5f9;
+      --ckm-text-sec    : #94a3b8;
+      --ckm-text-mute   : #7c8fa8;
+      /* Inputs */
+      --ckm-input-bg    : #0d131f;
+      --ckm-input-border: #1e293b;
+      /* Sombras */
+      --ckm-shadow      : rgba(0,0,0,0.9);
+      --ckm-shadow-soft : rgba(0,0,0,0.4);
+      /* Header / nav */
+      --ckm-header-btn-bg    : #1e293b;
+      --ckm-header-btn-border: #334155;
+      /* Logo */
+      --ckm-logo-blend  : screen;
+      --ckm-logo-filter : drop-shadow(0 0 10px rgba(0,240,255,0.18));
+      /* Slots / display tarifa */
+      --ckm-slot-glow   : 0 0 6px rgba(0,240,255,0.5);
+      /* Status badge */
+      --ckm-badge-bg    : rgba(0,240,255,0.05);
+      /* Misc panels */
+      --ckm-summary-bg  : #05070b;
+      --ckm-map-bg      : rgba(0,240,255,0.02);
+    }
+
+    :root[data-theme="light"] {
+      /* Fondos */
+      --ckm-bg          : #f0f4fb;
+      --ckm-panel       : #ffffff;
+      --ckm-panel2      : #f0f4fb;
+      --ckm-panel3      : #e8eef7;
+      --ckm-display     : #e8eef7;
+      /* Bordes */
+      --ckm-border      : #c8d8ec;
+      --ckm-border2     : #94a3b8;
+      /* Texto */
+      --ckm-text        : #0f172a;
+      --ckm-text-sec    : #334155;
+      --ckm-text-mute   : #64748b;
+      /* Inputs */
+      --ckm-input-bg    : #ffffff;
+      --ckm-input-border: #c8d8ec;
+      /* Sombras */
+      --ckm-shadow      : rgba(0,0,0,0.10);
+      --ckm-shadow-soft : rgba(0,0,0,0.06);
+      /* Header / nav */
+      --ckm-header-btn-bg    : #e8eef7;
+      --ckm-header-btn-border: #c8d8ec;
+      /* Logo */
+      --ckm-logo-blend  : normal;          /* sin screen — el PNG se ve limpio sobre claro */
+      --ckm-logo-filter : brightness(0.7) contrast(1.4) drop-shadow(0 0 6px rgba(0,120,180,0.18));
+      /* Slots */
+      --ckm-slot-glow   : 0 0 4px rgba(0,200,220,0.3);
+      /* Status badge */
+      --ckm-badge-bg    : rgba(0,150,200,0.08);
+      /* Misc panels */
+      --ckm-summary-bg  : #f0f4fb;
+      --ckm-map-bg      : rgba(0,100,180,0.03);
+    }
+
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Orbitron', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background: var(--ckm-bg);
+      color: var(--ckm-text);
+      min-height: 100vh;           /* fallback navegadores viejos */
+      min-height: 100dvh;          /* alto real de viewport dinámico móvil */
+      display: flex;
+      justify-content: center;
+      align-items: center;        /* centrado vertical real */
+      padding: 12px 8px;
+      padding-top:    max(12px, env(safe-area-inset-top));
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ═══════════════════════════════════════════
+       CONTENEDOR PRINCIPAL
+    ═══════════════════════════════════════════ */
+    .app-container {
+      width: 100%; max-width: 420px;
+      background: var(--ckm-panel);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 640px; /* altura base en escritorio; móvil la sobreescribe con 100dvh */
+      box-shadow:
+        inset 0 0 15px var(--ckm-shadow),
+        0 20px 50px var(--ckm-shadow),
+        0 0 0 4px var(--ckm-border);
+      border: 3px solid var(--ckm-display);
+      transition: background 0.3s;
+    }
+
+    /* ═══════════════════════════════════════════
+       PANTALLAS — sistema de vistas
+    ═══════════════════════════════════════════ */
+    .screen { display: none; }
+    .screen.active { display: block; flex: 1; min-width: 0; }
+    #screen-profile.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0; /* permite que flex-basis funcione bien dentro de app-container */
+    }
+
+    /* ═══════════════════════════════════════════
+       PANTALLA DE SELECCIÓN DE PERFIL
+    ═══════════════════════════════════════════ */
+    .profile-screen {
+      text-align: center;
+      padding: 8px 0 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+    }
+
+    .profile-logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #00f0ff;
+      text-shadow: 0 0 12px rgba(0,240,255,0.5);
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .profile-tagline {
+      font-size: 0.6rem;
+      color: var(--ckm-text-sec);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .profile-strip {
+      height: 2px;
+      background: linear-gradient(90deg, #ff0055, #00f0ff, #00ff66);
+      border-radius: 2px;
+      margin-bottom: 18px;
+    }
+
+    .profile-label {
+      font-size: 0.68rem;
+      color: var(--ckm-text-mute);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .profile-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .profile-card {
+      background: var(--ckm-panel2);
+      border: 1px solid var(--ckm-border);
+      border-radius: 14px;
+      padding: 20px 10px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.12s;
+      position: relative;
+      overflow: hidden;
+      -webkit-tap-highlight-color: rgba(255,255,255,0.08);
+      touch-action: manipulation;
+      min-height: 44px;
+      isolation: isolate;
+      appearance: none;
+      -webkit-appearance: none;
+      font-family: 'Orbitron', sans-serif;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .profile-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .profile-card.driver::before   { background: #ffaa00; }
+    .profile-card.passenger::before { background: #00f0ff; }
+
+    .profile-card:hover { transform: translateY(-2px); }
+    .profile-card.driver:hover     { border-color: #ffaa00; box-shadow: 0 0 16px rgba(255,170,0,0.15); }
+    .profile-card.passenger:hover  { border-color: #00f0ff; box-shadow: 0 0 16px rgba(0,240,255,0.15); }
+    .profile-card:hover::before    { opacity: 1; }
+    .profile-card:active           { transform: scale(0.97); }
+
+    /* tap highlight móvil */
+    .profile-card:active.driver    { border-color: #ffaa00; box-shadow: 0 0 16px rgba(255,170,0,0.2); }
+    .profile-card:active.passenger { border-color: #00f0ff; box-shadow: 0 0 16px rgba(0,240,255,0.2); }
+
+    .profile-card-icon { font-size: 2.2rem; margin-bottom: 10px; }
+
+    .profile-card-title {
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+      pointer-events: none;
+    }
+    .profile-card.driver   .profile-card-title { color: #ffaa00; }
+    .profile-card.passenger .profile-card-title { color: #00f0ff; }
+
+    .profile-card-desc {
+      font-size: 0.62rem;
+      color: var(--ckm-text-mute);
+      line-height: 1.8;
+      letter-spacing: 0.3px;
+      font-family: 'Orbitron', sans-serif;
+      pointer-events: none;
+    }
+
+    .profile-version {
+      font-size: 0.58rem;
+      color: var(--ckm-text-sec);
+      letter-spacing: 2px;
+    }
+
+    /* ═══════════════════════════════════════════
+       IDENTIDAD DE MARCA — assets v3.1
+    ═══════════════════════════════════════════ */
+    .brand-logo-img {
+      width: 100%;
+      max-width: 270px;          /* logo recortado sin margen sobrante — más presencia real */
+      height: auto;
+      display: block;
+      margin: 0 auto 10px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      outline: none;
+      mix-blend-mode: screen;
+      image-rendering: -webkit-optimize-contrast; /* nitidez en webkit */
+      image-rendering: crisp-edges;
+      filter: drop-shadow(0 0 14px rgba(0, 240, 255, 0.22));
+    }
+
+    /* Nombre de marca debajo del logo */
+    .brand-name {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #00f0ff;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0,240,255,0.4);
+      margin-bottom: 6px;
+    }
+
+    .brand-tagline {
+      font-size: 0.78rem;
+      color: #00f0ff;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      line-height: 1.7;
+      text-shadow: 0 0 8px rgba(0,240,255,0.25);
+      font-weight: 700;
+    }
+
+    .brand-subtagline {
+      font-size: 0.5rem;
+      color: var(--ckm-text-sec);
+      letter-spacing: 1px;
+      margin-bottom: 18px;
+      opacity: 0.75;
+    }
+
+    .header-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      flex-shrink: 0;
+      overflow: visible;
+      filter: drop-shadow(0 0 4px rgba(0,240,255,0.3));
+    }
+
+    /* SVG iconos de perfil */
+    .profile-card-svg {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      display: block;
+      /* overflow hidden dentro del card que ya tiene overflow:hidden — evita bug táctil WebKit */
+      overflow: hidden;
+      background: transparent;
+      shape-rendering: geometricPrecision;
+      /* Pointer events none — el click lo captura el card, no el SVG */
+      pointer-events: none;
+    }
+
+    /* Labels de tarifas sin emoji */
+    .rate-item label,
+    .pax-input-item label,
+    .pax-section-label {
+      font-variant-emoji: text;
+    }
+
+    /* ═══════════════════════════════════════════
+       HEADER COMPARTIDO (conductor + pasajero)
+    ═══════════════════════════════════════════ */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 2px dashed var(--ckm-border);
+      padding-bottom: 12px;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 6px;
+      font-weight: 900; font-size: 1rem;
+      color: #00f0ff;
+      text-shadow: 0 0 8px rgba(0,240,255,0.4);
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+    .logo-mode-badge {
+      font-size: 0.5rem;
+      padding: 2px 7px;
+      border-radius: 100px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-left: 4px;
+    }
+    .logo-mode-badge.driver    { background: rgba(255,170,0,0.15); color: #ffaa00; border: 1px solid rgba(255,170,0,0.3); }
+    .logo-mode-badge.passenger { background: rgba(0,240,255,0.1);  color: #00f0ff; border: 1px solid rgba(0,240,255,0.25); }
+
+    .btn-reset {
+      background: var(--ckm-header-btn-bg); border: 1px solid var(--ckm-header-btn-border);
+      color: #ffaa00; cursor: pointer;
+      padding: 6px 12px; border-radius: 6px;
+      font-size: 0.75rem; font-weight: 900; letter-spacing: 0.5px;
+      min-height: 36px;  /* área táctil */
+    }
+
+    /* ═══════════════════════════════════════════
+       CONDUCTOR — estilos originales intactos
+    ═══════════════════════════════════════════ */
+    .rates-panel {
+      display: grid; grid-template-columns: repeat(2,1fr);
+      gap: 12px; margin-bottom: 16px;
+      background: var(--ckm-panel2); padding: 12px;
+      border-radius: 12px; border: 1px solid var(--ckm-border);
+    }
+    .rate-item { display: flex; flex-direction: column; width: 100%; }
+    .rate-item label {
+      font-size: 0.6rem; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--ckm-text-mute);
+      font-weight: 700; margin-bottom: 4px;
+    }
+    .rate-item input {
+      width: 100%; background: var(--ckm-panel3);
+      border: 1px solid var(--ckm-border); padding: 8px;
+      font-size: 0.95rem; font-weight: 700;
+      color: #00ff66; border-radius: 6px;
+      outline: none; text-align: right; font-family: monospace;
+    }
+
+    .main-display {
+      background: var(--ckm-display); border: 4px solid var(--ckm-border);
+      border-radius: 14px; padding: 20px 10px;
+      text-align: center; margin-bottom: 16px;
+      position: relative; overflow: hidden;
+    }
+    .main-display::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #ff0055, #00f0ff, #00ff66);
+    }
+
+    .label-display {
+      font-size: 0.65rem; color: #475569;
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 10px; font-weight: 700;
+    }
+
+    .slot-counter-wrapper {
+      display: flex; justify-content: center; align-items: center;
+      font-family: monospace;
+      font-size: clamp(2.4rem, 11vw, 3.2rem);
+      font-weight: 900;
+      color: #00f0ff; text-shadow: 0 0 6px rgba(0,240,255,0.5);
+      line-height: 1;
+      overflow: visible;
+      margin: 0 auto;
+      letter-spacing: -1px;
+    }
+    .slot-prefix { margin-right: 1px; }
+    .slot-suffix {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(0.7rem, 2.8vw, 1rem);
+      color: var(--ckm-text-mute); text-shadow: none;
+      margin-left: 6px; align-self: center;
+      white-space: nowrap; font-weight: 700;
+    }
+    /* slotContainer oculto — fareText muestra el número directamente */
+    #slotContainer { display: none !important; }
+    #fareText {
+      font-family: monospace;
+      font-size: inherit;
+      font-weight: inherit;
+      color: inherit;
+      letter-spacing: inherit;
+    }
+    .digit-slot { display: none; }
+    .digit-track { display: none; }
+
+    .distance-display {
+      font-family: monospace; font-size: 2.2rem; font-weight: 700;
+      color: #00ff66; margin-top: 16px;
+      text-shadow: 0 0 8px rgba(0,255,102,0.5);
+      border-top: 1px dashed var(--ckm-border); padding-top: 12px;
+    }
+    .distance-display small {
+      font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
+      color: var(--ckm-text-sec); text-shadow: none;
+    }
+
+    .status-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 4px;
+      font-size: 0.65rem; font-weight: 900; text-transform: uppercase;
+      letter-spacing: 1px; background: rgba(0,240,255,0.05);
+      color: #00f0ff; margin-top: 12px; border: 1px solid rgba(0,240,255,0.2);
+    }
+
+    .actions { display: flex; gap: 10px; }
+
+    .btn {
+      flex: 1; padding: 16px 0; border: 2px solid var(--ckm-border);
+      border-radius: 10px; font-weight: 900; font-size: 0.85rem;
+      text-transform: uppercase; display: flex; align-items: center;
+      justify-content: center; gap: 6px; cursor: pointer; transition: transform 0.1s;
+      min-height: 52px;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: #ffaa00; color: #000000; border-color: #ffcc00; box-shadow: 0 4px 12px rgba(255,170,0,0.2); }
+    .btn-danger  { background: #990024; color: #ffffff; border-color: #cc0033; box-shadow: 0 4px 12px rgba(153,0,36,0.2); }
+    .btn:disabled { opacity: 0.15; pointer-events: none; }
+
+    .summary {
+      margin-top: 14px; background: var(--ckm-panel2);
+      border-radius: 10px; padding: 12px; display: none;
+      border: 1px solid var(--ckm-border);
+    }
+    .summary.show { display: block; }
+    .summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; text-align: center;
+    }
+    .summary-item {
+      background: var(--ckm-panel); padding: 8px 4px;
+      border-radius: 6px; border: 1px solid var(--ckm-border);
+    }
+    .summary-item .label { font-size: 0.55rem; text-transform: uppercase; color: var(--ckm-text-mute); }
+    .summary-item .value { font-size: 1rem; font-weight: 700; margin-top: 2px; font-family: monospace; }
+
+    .footer {
+      margin-top: 16px; border-top: 1px solid var(--ckm-border);
+      padding-top: 12px; display: flex;
+      justify-content: space-between; align-items: center;
+      font-size: 0.65rem; color: var(--ckm-text-sec);
+    }
+
+    /* ═══════════════════════════════════════════
+       PASAJERO — módulo nuevo
+    ═══════════════════════════════════════════ */
+    .passenger-display {
+      background: var(--ckm-display); border: 4px solid var(--ckm-border);
+      border-radius: 14px; padding: 20px 14px;
+      margin-bottom: 16px; position: relative; overflow: hidden;
+    }
+    .passenger-display::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #00f0ff, #00ff66, #00f0ff);
+    }
+
+    .pax-section-label {
+      font-size: 0.58rem; color: #64748b;
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 12px; font-weight: 700; text-align: center;
+    }
+
+    .pax-input-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 14px;
+    }
+    .pax-input-item { display: flex; flex-direction: column; }
+    .pax-input-item label {
+      font-size: 0.58rem; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #64748b;
+      font-weight: 700; margin-bottom: 4px;
+    }
+    .pax-input-item input {
+      background: var(--ckm-input-bg); border: 1px solid var(--ckm-input-border);
+      padding: 10px 8px; font-size: 0.9rem; font-weight: 700;
+      color: #00f0ff; border-radius: 6px; outline: none;
+      text-align: right; font-family: monospace; width: 100%;
+      min-height: 44px;  /* área táctil */
+    }
+    .pax-input-item input:focus { border-color: rgba(0,240,255,0.4); }
+
+    .pax-calc-btn {
+      width: 100%; padding: 15px 0;
+      background: linear-gradient(135deg, #003d52, #005f7a);
+      border: 1px solid #00f0ff; border-radius: 10px;
+      color: #00f0ff; font-size: 0.82rem; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 1px;
+      cursor: pointer; transition: transform 0.1s;
+      margin-bottom: 14px;
+      min-height: 52px;  /* área táctil */
+    }
+    .pax-calc-btn:active { transform: scale(0.97); }
+
+    .pax-results {
+      display: none;
+      background: var(--ckm-summary-bg); border-radius: 10px;
+      padding: 14px; border: 1px solid var(--ckm-border);
+    }
+    .pax-results.show { display: block; }
+
+    .pax-results-title {
+      font-size: 0.58rem; color: #64748b;
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 12px; text-align: center;
+    }
+
+    .pax-fare-big {
+      text-align: center;
+      font-family: monospace; font-size: 2.6rem; font-weight: 900;
+      color: #00f0ff; text-shadow: 0 0 10px rgba(0,240,255,0.4);
+      margin-bottom: 4px; line-height: 1;
+    }
+    .pax-fare-big small {
+      font-family: 'Orbitron', sans-serif; font-size: 0.85rem;
+      color: var(--ckm-text-sec); text-shadow: none;
+    }
+
+    .pax-fare-range {
+      text-align: center; font-size: 0.58rem;
+      color: var(--ckm-text-mute); letter-spacing: 1px; margin-bottom: 14px;
+    }
+
+    .pax-stats-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 8px;
+    }
+    .pax-stat {
+      background: var(--ckm-panel); padding: 8px 4px;
+      border-radius: 6px; border: 1px solid var(--ckm-border);
+      text-align: center;
+    }
+    .pax-stat .s-label { font-size: 0.52rem; text-transform: uppercase; color: #64748b; margin-bottom: 3px; }
+    .pax-stat .s-value { font-size: 0.9rem; font-weight: 700; font-family: monospace; }
+
+    .pax-disclaimer {
+      font-size: 0.52rem; color: #475569; text-align: center;
+      margin-top: 12px; line-height: 1.7; letter-spacing: 0.3px;
+    }
+
+    /* Ciudad preset chips */
+    .city-chips {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+    }
+    .city-chip {
+      font-size: 0.56rem; padding: 6px 12px;
+      background: var(--ckm-panel2); border: 1px solid var(--ckm-border);
+      border-radius: 100px; color: var(--ckm-text-mute);
+      cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;
+      min-height: 32px; display: flex; align-items: center;
+    }
+    .city-chip:hover, .city-chip.active {
+      border-color: #00f0ff; color: #00f0ff;
+      background: rgba(0,240,255,0.06);
+    }
+
+    /* ═══════════════════════════════════════════
+       ANIMACIÓN de transición entre pantallas
+    ═══════════════════════════════════════════ */
+    .screen {
+      animation: fadeIn 0.22s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE MOBILE-FIRST — max-width: 480px
+       Prioridad: pantallas de teléfono real
+    ═══════════════════════════════════════════ */
+    @media (max-width: 480px) {
+
+      body {
+        padding: 0;
+        align-items: flex-start;
+      }
+
+      .app-container {
+        border-radius: 0;          /* full-width sin bordes redondeados */
+        border-left: none;
+        border-right: none;
+        padding: 14px 12px;
+        min-height: 100vh;         /* fallback */
+        min-height: 100dvh;        /* alto real — evita descentrado por barra de navegador móvil */
+        padding-top:    max(14px, env(safe-area-inset-top));
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
+        box-shadow: none;          /* sin sombra en móvil real */
+      }
+
+      /* — Pantalla inicial — */
+      .profile-screen {
+        padding: 4px 0 4px;
+      }
+
+      .brand-logo-img {
+        max-width: 250px;
+        margin-bottom: 10px;
+      }
+
+      .brand-name {
+        font-size: 1rem;
+        letter-spacing: 2px;
+        margin-bottom: 4px;
+      }
+
+      .brand-tagline {
+        font-size: 0.72rem;
+        letter-spacing: 0.8px;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+
+      .profile-strip {
+        margin-bottom: 14px;
+      }
+
+      .profile-label {
+        font-size: 0.65rem;
+        margin-bottom: 10px;
+        letter-spacing: 2px;
+      }
+
+      .profile-cards {
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .profile-card {
+        padding: 16px 8px 14px;
+        border-radius: 12px;
+      }
+
+      .profile-card-svg {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 10px;
+      }
+
+      .profile-card-title {
+        font-size: 0.78rem;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+      }
+
+      .profile-card-desc {
+        font-size: 0.6rem;
+        line-height: 1.7;
+        letter-spacing: 0.2px;
+      }
+
+      .profile-version {
+        font-size: 0.55rem;
+        margin-top: 4px;
+      }
+
+      /* — Header conductor / pasajero — */
+      .header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+      }
+
+      .logo {
+        font-size: 0.85rem;
+        gap: 5px;
+      }
+
+      .logo-mode-badge {
+        font-size: 0.46rem;
+        padding: 2px 6px;
+      }
+
+      .btn-reset {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+      }
+
+      /* — Panel de tarifas — */
+      .rates-panel {
+        gap: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+      }
+
+      .rate-item label {
+        font-size: 0.56rem;
+      }
+
+      .rate-item input {
+        padding: 10px 8px;
+        font-size: 0.9rem;
+      }
+
+      /* — Pantalla de display — */
+      .main-display {
+        padding: 16px 8px;
+        margin-bottom: 12px;
+      }
+
+      .slot-counter-wrapper {
+        font-size: 2.8rem;
+        height: 2.8rem;
+      }
+
+      .digit-slot {
+        height: 2.8rem;
+        width: 1.85rem;
+      }
+
+      .digit-track span {
+        height: 2.8rem;
+      }
+
+      .distance-display {
+        font-size: 1.9rem;
+        margin-top: 12px;
+        padding-top: 10px;
+      }
+
+      /* — Botones — */
+      .actions {
+        gap: 8px;
+      }
+
+      .btn {
+        padding: 16px 0;
+        font-size: 0.82rem;
+        min-height: 54px;
+      }
+
+      /* — Pasajero — */
+      .passenger-display {
+        padding: 16px 10px;
+      }
+
+      .pax-section-label {
+        font-size: 0.56rem;
+        margin-bottom: 10px;
+      }
+
+      .pax-input-row {
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .pax-input-item label {
+        font-size: 0.55rem;
+      }
+
+      .pax-calc-btn {
+        font-size: 0.78rem;
+        padding: 14px 0;
+      }
+
+      .pax-fare-big {
+        font-size: 2.2rem;
+      }
+
+      .city-chip {
+        font-size: 0.54rem;
+        padding: 5px 10px;
+      }
+
+      .pax-disclaimer {
+        font-size: 0.5rem;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+       PANTALLAS MUY PEQUEÑAS — max-width: 360px
+    ═══════════════════════════════════════════ */
+    @media (max-width: 360px) {
+
+      .brand-logo-img { max-width: 190px; }
+
+      .profile-cards { grid-template-columns: 1fr 1fr; gap: 6px; }
+
+      .profile-card-title { font-size: 0.72rem; }
+
+      .profile-card-desc { font-size: 0.56rem; }
+
+      .slot-counter-wrapper { font-size: 2.4rem; height: 2.4rem; }
+      .digit-slot           { height: 2.4rem; width: 1.6rem; }
+      .digit-track span     { height: 2.4rem; }
+
+      .distance-display { font-size: 1.7rem; }
+
+      .btn { font-size: 0.78rem; }
+    }
+    /* ═══════════════════════════════════════════
+       PASAJERO v2 — nueva UX origen/destino
+    ═══════════════════════════════════════════ */
+
+    /* Barra de ciudad compacta */
+    .pax-city-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .pax-city-label {
+      font-size: 0.55rem;
+      color: var(--ckm-text-sec);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .pax-city-bar .city-chips {
+      margin-bottom: 0;
+      flex: 1;
+    }
+
+    /* Hero — pregunta principal */
+    .pax-hero {
+      background: var(--ckm-display);
+      border: 2px solid var(--ckm-border);
+      border-radius: 14px;
+      padding: 16px 14px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .pax-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, #00f0ff, #00ff66);
+      border-radius: 14px 14px 0 0;
+    }
+
+    .pax-hero-label {
+      font-size: 0.58rem;
+      color: var(--ckm-text-sec);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Campo de ruta */
+    .pax-route-field {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .pax-route-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 20px;
+    }
+    .pax-dot-origin { background: #00ff66; box-shadow: 0 0 6px rgba(0,255,102,0.5); }
+    .pax-dot-dest   { background: #ff003c; box-shadow: 0 0 6px rgba(255,0,60,0.5); }
+
+    .pax-route-line {
+      width: 2px;
+      height: 20px;
+      background: linear-gradient(to bottom, #00ff66, #ff003c);
+      margin: 2px 0 2px 5px;
+      opacity: 0.4;
+    }
+
+    .pax-route-content {
+      flex: 1;
+      min-width: 0;
+      position: relative; /* ancla para el dropdown de sugerencias */
+    }
+
+    /* ── Autocompletado tipo Google Maps ── */
+    .pax-suggestions {
+      display: none;
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: var(--ckm-panel3);
+      border: 1px solid var(--ckm-border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px var(--ckm-shadow);
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .pax-suggestions.show { display: block; }
+    .pax-suggestion-item {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--ckm-border);
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pax-suggestion-item:last-child { border-bottom: none; }
+    .pax-suggestion-item:active,
+    .pax-suggestion-item:hover {
+      background: rgba(0, 240, 255, 0.07);
+    }
+    .pax-suggestion-name {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ckm-text);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pax-suggestion-meta {
+      font-size: 0.56rem;
+      color: var(--ckm-text-mute);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pax-suggestion-loading,
+    .pax-suggestion-empty {
+      padding: 10px 12px;
+      font-size: 0.6rem;
+      color: var(--ckm-text-mute);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+    /* Marca visual de ubicación confirmada (coordenadas guardadas) */
+    .pax-route-input.confirmed {
+      border-color: #00ff66;
+      color: #00ff66;
+    }
+
+    .pax-route-sublabel {
+      font-size: 0.5rem;
+      color: var(--ckm-text-sec);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .pax-location-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pax-route-input {
+      width: 100%;
+      background: var(--ckm-panel3);
+      border: 1px solid var(--ckm-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: var(--ckm-text);
+      font-family: 'Orbitron', sans-serif;
+      outline: none;
+      min-height: 44px;
+      letter-spacing: 0.3px;
+    }
+    .pax-route-input::placeholder { color: var(--ckm-text-sec); }
+    .pax-route-input:focus { border-color: rgba(0,240,255,0.35); }
+
+    .pax-gps-btn {
+      background: var(--ckm-panel3);
+      border: 1px solid rgba(0,255,102,0.3);
+      border-radius: 8px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .pax-gps-btn:active { background: rgba(0,255,102,0.08); border-color: #00ff66; }
+
+    /* Fila manual distancia/tiempo */
+    .pax-manual-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+      /* Contener el ancho máximo */
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .pax-manual-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .pax-manual-label {
+      font-size: 0.54rem;
+      color: var(--ckm-text-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+    }
+    .pax-manual-input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--ckm-input-bg);
+      border: 1.5px solid var(--ckm-input-border);
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .pax-manual-input {
+      flex: 1;
+      min-width: 0;        /* evita desbordamiento en grid */
+      width: 0;            /* deja que flex calcule el ancho */
+      background: transparent;
+      border: none;
+      padding: 9px 6px;
+      font-size: 0.88rem;  /* reducido de 0.95rem */
+      font-weight: 700;
+      color: #00f0ff;
+      font-family: monospace;
+      text-align: right;
+      outline: none;
+      min-height: 40px;
+    }
+    .pax-manual-unit {
+      font-size: 0.5rem;
+      color: var(--ckm-text-sec);
+      padding: 0 7px 0 3px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* GPS status */
+    .pax-gps-status {
+      text-align: center;
+      font-size: 0.58rem;
+      color: #00ff66;
+      letter-spacing: 1px;
+      padding: 8px 0;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* Resultados */
+    .pax-results {
+      display: none;
+      background: var(--ckm-panel2);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid var(--ckm-border);
+      margin-bottom: 14px;
+    }
+    .pax-results.show { display: block; }
+
+    .pax-results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .pax-results-title {
+      font-size: 0.58rem;
+      color: var(--ckm-text-sec);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+    }
+    .pax-results-city {
+      font-size: 0.5rem;
+      color: #00f0ff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .pax-fare-big {
+      text-align: center;
+      font-family: monospace;
+      font-size: clamp(2rem, 10vw, 2.8rem);
+      font-weight: 900;
+      color: #00f0ff;
+      text-shadow: 0 0 10px rgba(0,240,255,0.4);
+      margin-bottom: 6px;
+      line-height: 1;
+    }
+    .pax-fare-big small {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(0.65rem, 2.5vw, 0.85rem);
+      color: var(--ckm-text-sec);
+      text-shadow: none;
+    }
+
+    .pax-fare-range {
+      text-align: center;
+      font-size: 0.58rem;
+      color: var(--ckm-text-mute);
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+
+    .pax-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pax-stat {
+      background: var(--ckm-panel);
+      padding: 10px 4px;
+      border-radius: 8px;
+      border: 1px solid var(--ckm-border);
+      text-align: center;
+    }
+    .pax-stat .s-label { font-size: 0.5rem; text-transform: uppercase; color: var(--ckm-text-mute); margin-bottom: 4px; letter-spacing: 0.5px; }
+    .pax-stat .s-value { font-size: 0.9rem; font-weight: 700; font-family: monospace; }
+
+    /* Placeholder mapa futuro */
+    .pax-map-placeholder {
+      border: 1px dashed var(--ckm-border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      background: rgba(0,240,255,0.02);
+    }
+    .pax-map-icon { opacity: 0.3; }
+    .pax-map-text {
+      font-size: 0.5rem;
+      color: var(--ckm-border2);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-align: center;
+    }
+
+    .pax-disclaimer {
+      font-size: 0.52rem;
+      color: var(--ckm-text-sec);
+      text-align: center;
+      line-height: 1.7;
+      letter-spacing: 0.2px;
+    }
+
+    /* ═══════════════════════════════════════════
+       CAMBIO 1 — SELECTOR DE VEHÍCULO
+    ═══════════════════════════════════════════ */
+    .vehicle-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .vehicle-btn {
+      flex: 1;
+      padding: 10px 6px;
+      background: var(--ckm-panel2);
+      border: 1.5px solid var(--ckm-border);
+      border-radius: 10px;
+      color: var(--ckm-text-mute);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-height: 68px;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .vehicle-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: transparent;
+      transition: background 0.18s;
+    }
+    .vehicle-btn.active {
+      border-color: #ffaa00;
+      color: #ffaa00;
+      background: rgba(255,170,0,0.07);
+    }
+    .vehicle-btn.active::before { background: #ffaa00; }
+    .vehicle-btn svg { opacity: 0.6; transition: opacity 0.18s; }
+    .vehicle-btn.active svg { opacity: 1; }
+
+    /* ═══════════════════════════════════════════
+       CAMBIO 3 — BOTÓN DE TEMA
+    ═══════════════════════════════════════════ */
+    .theme-toggle {
+      background: var(--ckm-panel2);
+      border: 1px solid var(--ckm-border);
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--ckm-text-mute);
+      flex-shrink: 0;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .theme-toggle:hover { border-color: #ffaa00; color: #ffaa00; }
+
+    /* En tema claro, el icono cambia */
+    :root[data-theme="light"] .theme-toggle { color: #ffaa00; border-color: rgba(255,170,0,0.4); }
+
+    /* ── Ciudad selector conductor ── */
+    .driver-city-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .driver-city-label {
+      font-size: 0.52rem;
+      color: var(--ckm-text-mute);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .driver-city-chip {
+      font-size: 0.54rem;
+      padding: 5px 10px;
+      background: var(--ckm-panel2);
+      border: 1px solid var(--ckm-border);
+      border-radius: 100px;
+      color: var(--ckm-text-mute);
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .driver-city-chip.active {
+      border-color: #ffaa00;
+      color: #ffaa00;
+      background: rgba(255,170,0,0.08);
+    }
+
+    /* ── Pregunta vehículo pasajero ── */
+    .pax-vehicle-question {
+      font-size: 0.58rem;
+      color: var(--ckm-text-sec);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    /* ── UX FIX — Botón cambiar modo ── */
+    #uxfix {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px 0;
+      background: transparent;
+      border: 1px dashed var(--ckm-border2);
+      border-radius: 10px;
+      color: var(--ckm-text-sec);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      min-height: 46px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #uxfix:hover, #uxfix:active {
+      border-color: #00f0ff;
+      color: #00f0ff;
+    }
+    /* Segundo botón cambiar modo en pantalla pasajero */
+    #uxfix-pax {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px 0;
+      background: transparent;
+      border: 1px dashed var(--ckm-border2);
+      border-radius: 10px;
+      color: var(--ckm-text-sec);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      min-height: 46px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #uxfix-pax:hover, #uxfix-pax:active {
+      border-color: #00f0ff;
+      color: #00f0ff;
+    }
+
+    /* ── Selector vehículo pasajero ── */
+    .pax-vehicle-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .pax-vehicle-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 6px;
+      background: var(--ckm-panel2);
+      border: 1.5px solid var(--ckm-border);
+      border-radius: 10px;
+      color: var(--ckm-text-mute);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+      min-height: 60px;
+      justify-content: center;
+      touch-action: manipulation;
+      position: relative;
+      overflow: hidden;
+    }
+    .pax-vehicle-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: transparent;
+      transition: background 0.18s;
+    }
+    .pax-vehicle-btn.active {
+      border-color: #00f0ff;
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.07);
+    }
+    .pax-vehicle-btn.active::before { background: #00f0ff; }
+    .pax-vehicle-btn svg { opacity: 0.55; transition: opacity 0.18s; }
+    .pax-vehicle-btn.active svg { opacity: 1; }
+
+    /* ── Tabla de comparación ── */
+    .pax-compare {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pax-compare.show { display: grid; }
+    .pax-compare-card {
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+      border: 1px solid var(--ckm-border);
+      background: var(--ckm-panel2);
+      position: relative;
+      overflow: hidden;
+    }
+    .pax-compare-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+    }
+    .pax-compare-card.card-car::before  { background: #ffaa00; }
+    .pax-compare-card.card-moto::before { background: #00f0ff; }
+    .pax-compare-card.card-selected {
+      border-color: var(--ckm-border2);
+      background: rgba(0, 240, 255, 0.04);
+    }
+    .pax-compare-label {
+      font-size: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--ckm-text-mute);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .pax-compare-fare {
+      font-family: monospace;
+      font-size: 1.3rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .pax-compare-card.card-car  .pax-compare-fare { color: #ffaa00; }
+    .pax-compare-card.card-moto .pax-compare-fare { color: #00f0ff; }
+    .pax-compare-range {
+      font-size: 0.48rem;
+      color: var(--ckm-text-mute);
+      letter-spacing: 0.3px;
+    }
+    .pax-compare-badge {
+      display: inline-block;
+      font-size: 0.44rem;
+      padding: 2px 6px;
+      border-radius: 100px;
+      background: rgba(0,255,102,0.12);
+      color: #00ff66;
+      border: 1px solid rgba(0,255,102,0.3);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ═══════════════════════════════════════════
+       APLICACIÓN DE VARIABLES — todos los componentes
+       Sustituye colores hardcodeados residuales.
+    ═══════════════════════════════════════════ */
+
+    /* — Logo — */
+    .brand-logo-img {
+      mix-blend-mode: var(--ckm-logo-blend);
+      filter: var(--ckm-logo-filter);
+    }
+    .brand-name { color: #00f0ff; } /* acento fijo — no cambia con tema */
+    .brand-tagline { color: #00f0ff; } /* acento fijo — más presencia visual */
+    .profile-label { color: var(--ckm-text-mute); }
+    .profile-version { color: var(--ckm-text-sec); }
+    .profile-card-desc { color: var(--ckm-text-mute); }
+
+    /* — Header botones — */
+    .btn-reset {
+      background: var(--ckm-header-btn-bg);
+      border-color: var(--ckm-header-btn-border);
+    }
+    .theme-toggle {
+      background: var(--ckm-header-btn-bg);
+      border-color: var(--ckm-border);
+      color: var(--ckm-text-mute);
+    }
+    .logo { color: #00f0ff; }
+
+    /* — Panel de tarifas conductor — */
+    .label-display { color: var(--ckm-text-mute); }
+    .slot-suffix { color: var(--ckm-text-mute); }
+    .status-badge {
+      background: var(--ckm-badge-bg);
+      border-color: var(--ckm-border);
+      color: var(--ckm-text-sec);
+    }
+    .distance-display small { color: var(--ckm-text-mute); }
+
+    /* — Footer — */
+    .footer { color: var(--ckm-text-mute); }
+
+    /* — Summary — */
+    .summary { background: var(--ckm-summary-bg); }
+    .summary-item .label { color: var(--ckm-text-mute); }
+
+    /* — Inputs del conductor — */
+    .rate-item label { color: var(--ckm-text-mute); }
+    .rate-item input {
+      background: var(--ckm-input-bg);
+      border-color: var(--ckm-input-border);
+    }
+
+    /* — Vehicle selector conductor — */
+    .vehicle-btn {
+      background: var(--ckm-panel2);
+      border-color: var(--ckm-border);
+      color: var(--ckm-text-mute);
+    }
+
+    /* — Driver city chips — */
+    .driver-city-label { color: var(--ckm-text-mute); }
+    .driver-city-chip {
+      background: var(--ckm-panel2);
+      border-color: var(--ckm-border);
+      color: var(--ckm-text-mute);
+    }
+
+    /* — Pasajero: pregunta vehículo — */
+    .pax-vehicle-question { color: var(--ckm-text-sec); }
+    .pax-vehicle-btn {
+      background: var(--ckm-panel2);
+      border-color: var(--ckm-border);
+      color: var(--ckm-text-mute);
+    }
+
+    /* — City bar pasajero — */
+    .pax-city-label { color: var(--ckm-text-mute); }
+
+    /* — Hero pasajero — */
+    .pax-hero-label { color: var(--ckm-text-mute); }
+    .pax-route-sublabel { color: var(--ckm-text-mute); }
+    .pax-route-input {
+      background: var(--ckm-input-bg);
+      border-color: var(--ckm-input-border);
+      color: var(--ckm-text);
+    }
+    .pax-route-input::placeholder { color: var(--ckm-text-mute); }
+    .pax-gps-btn {
+      background: var(--ckm-input-bg);
+      border-color: var(--ckm-border);
+    }
+
+    /* — Manual inputs pasajero — */
+    .pax-manual-label { color: var(--ckm-text-mute); }
+    .pax-manual-input-wrap {
+      background: var(--ckm-input-bg);
+      border-color: var(--ckm-input-border);
+    }
+    .pax-manual-unit { color: var(--ckm-text-mute); }
+
+    /* — Section labels pasajero — */
+    .pax-section-label { color: var(--ckm-text-mute); }
+    .pax-results-title { color: var(--ckm-text-mute); }
+
+    /* — Fare range y disclaimer — */
+    .pax-fare-range { color: var(--ckm-text-mute); }
+    .pax-fare-big small { color: var(--ckm-text-mute); }
+    .pax-disclaimer { color: var(--ckm-text-mute); }
+
+    /* — Stats — */
+    .pax-stat { background: var(--ckm-panel); }
+    .pax-stat .s-label { color: var(--ckm-text-mute); }
+    .pax-gps-status { color: #00ff66; }
+
+    /* — Map placeholder — */
+    .pax-map-placeholder { background: var(--ckm-map-bg); }
+    .pax-map-text { color: var(--ckm-text-mute); }
+
+    /* — Compare cards — */
+    .pax-compare-card { background: var(--ckm-panel2); }
+    .pax-compare-label { color: var(--ckm-text-mute); }
+    .pax-compare-range { color: var(--ckm-text-mute); }
+
+    /* — uxfix buttons — */
+    #uxfix, #uxfix-pax {
+      color: var(--ckm-text-mute);
+      border-color: var(--ckm-border2);
+    }
+
+    /* ── Correcciones específicas modo CLARO ─────── */
+    :root[data-theme="light"] .main-display { background: var(--ckm-display); }
+    :root[data-theme="light"] .pax-hero     { background: var(--ckm-display); }
+    :root[data-theme="light"] .passenger-display { background: var(--ckm-display); }
+    :root[data-theme="light"] .pax-results  { background: var(--ckm-panel2); }
+    :root[data-theme="light"] .slot-counter-wrapper {
+      color: #0077aa;
+      text-shadow: var(--ckm-slot-glow);
+    }
+    :root[data-theme="light"] #fareText { color: #0077aa; }
+    :root[data-theme="light"] .distance-display {
+      color: #007a40;
+      text-shadow: none;
+    }
+    :root[data-theme="light"] .profile-logo { color: #0077aa; }
+    :root[data-theme="light"] .rate-item input { color: #007a40; }
+    :root[data-theme="light"] .pax-manual-input { color: #0077aa; }
+    :root[data-theme="light"] .pax-fare-big    { color: #0077aa; text-shadow: none; }
+    :root[data-theme="light"] .status-badge    { background: rgba(0,120,170,0.08); color: #0077aa; }
+    :root[data-theme="light"] .logo { color: #0077aa; }
+    :root[data-theme="light"] .btn-reset { color: #c47a00; }
+    :root[data-theme="light"] .brand-name { color: #0077aa; }
+    :root[data-theme="light"] .logo-mode-badge.driver    { background: rgba(196,122,0,0.12);  color: #c47a00; }
+    :root[data-theme="light"] .logo-mode-badge.passenger { background: rgba(0,120,170,0.12); color: #0077aa; }
+    :root[data-theme="light"] .profile-card.driver:hover  { border-color: #c47a00; }
+    :root[data-theme="light"] .profile-card.passenger:hover { border-color: #0077aa; }
+    :root[data-theme="light"] .vehicle-btn.active         { border-color: #c47a00; color: #c47a00; background: rgba(196,122,0,0.06); }
+    :root[data-theme="light"] .pax-vehicle-btn.active     { border-color: #0077aa; color: #0077aa; background: rgba(0,120,170,0.06); }
+    :root[data-theme="light"] .driver-city-chip.active    { border-color: #c47a00; color: #c47a00; background: rgba(196,122,0,0.06); }
+    :root[data-theme="light"] .city-chip.active           { border-color: #0077aa; color: #0077aa; background: rgba(0,120,170,0.06); }
+    :root[data-theme="light"] .pax-compare-card.card-car  .pax-compare-fare { color: #c47a00; }
+    :root[data-theme="light"] .pax-compare-card.card-moto .pax-compare-fare { color: #0077aa; }
+    :root[data-theme="light"] .main-display::before { opacity: 0.6; }
+    :root[data-theme="light"] .pax-dot-origin { background: #007a40; }
+    :root[data-theme="light"] .pax-dot-dest   { background: #cc0033; }
+    :root[data-theme="light"] .btn-primary     { background: #d4900a; border-color: #d4900a; color: #fff; }
+    :root[data-theme="light"] .btn-danger      { background: #b30025; border-color: #b30025; }
+    :root[data-theme="light"] .pax-calc-btn    {
+      background: linear-gradient(135deg, #006080, #0088aa);
+      border-color: #0077aa;
+      color: #fff;
+    }
+    :root[data-theme="light"] .pax-calc-btn svg polygon { fill: #fff; }
+
+    /* ── Responsive móvil — variables se aplican igual ── */
+    @media (max-width: 480px) {
+      :root[data-theme="light"] .app-container { box-shadow: 0 2px 12px var(--ckm-shadow); }
+    }
+
+    /* ── Mapa Leaflet pasajero ── */
+    #pax-map {
+      display: none;
+      width: 100%;
+      height: 200px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--ckm-border);
+      margin-bottom: 12px;
+      background: var(--ckm-panel2);
+    }
+    #pax-map.show { display: block; }
+
+    /* Estado del ruteo */
+    .pax-route-status {
+      display: none;
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 0.56rem;
+      color: var(--ckm-text-sec);
+      letter-spacing: 0.5px;
+      line-height: 1.6;
+      border-radius: 6px;
+    }
+    .pax-route-status.show {
+      display: block;
+      background: var(--ckm-panel2);
+      border: 1px solid var(--ckm-border);
+      margin-bottom: 8px;
+    }
+    .pax-route-status.error {
+      color: #ff4466;
+      border-color: rgba(255,68,102,0.3);
+      background: rgba(255,68,102,0.05);
+    }
+
+    /* Fallback manual — oculto por defecto, visible si falla la ruta */
+    .pax-manual-fallback {
+      border: 1px dashed var(--ckm-border2);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .pax-manual-fallback-label {
+      font-size: 0.5rem;
+      color: var(--ckm-text-mute);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+  </style>
+
+  <!-- Leaflet CSS — solo para el mapa del pasajero -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 1: SELECCIÓN DE PERFIL
+  ══════════════════════════════════════════ -->
+  <div class="screen active" id="screen-profile">
+    <div class="profile-screen">
+
+      <!-- Logo principal de marca -->
+      <img
+        src="assets/calkilometro-logo.png"
+        alt="Calkilometro"
+        class="brand-logo-img"
+        draggable="false"
+      >
+      <div class="brand-name" style="display:none;">CALKILOMETRO</div>
+      <div class="brand-tagline">
+        La plataforma inteligente<br>para el transporte independiente
+      </div>
+      <div class="brand-subtagline">Compara rutas • estima tarifas • viaja mejor</div>
+
+      <div class="profile-strip"></div>
+      <div class="profile-label">Selecciona tu perfil</div>
+
+      <div class="profile-cards">
+
+        <!-- CONDUCTOR -->
+        <button class="profile-card driver" id="btn-select-driver" type="button">
+          <svg class="profile-card-svg" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="21" cy="21" r="15" stroke="#ffaa00" stroke-width="2" fill="none"/>
+            <circle cx="21" cy="21" r="5.5" stroke="#ffaa00" stroke-width="2" fill="none"/>
+            <line x1="21" y1="6"  x2="21" y2="15.5" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
+            <line x1="21" y1="26.5" x2="21" y2="36" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
+            <line x1="6"  y1="21" x2="15.5" y2="21" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
+            <line x1="26.5" y1="21" x2="36" y2="21" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="profile-card-title">CONDUCTOR</div>
+          <div class="profile-card-desc">Medición GPS inteligente de tus viajes.</div>
+        </button>
+
+        <!-- PASAJERO -->
+        <button class="profile-card passenger" id="btn-select-passenger" type="button">
+          <svg class="profile-card-svg" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="21" cy="15" r="6" stroke="#00f0ff" stroke-width="2" fill="none"/>
+            <path d="M21 21 C21 21 10 30 10 36 Q10 40 21 40 Q32 40 32 36 C32 30 21 21 21 21Z" stroke="#00f0ff" stroke-width="2" fill="none" stroke-linejoin="round"/>
+            <circle cx="21" cy="15" r="2.5" fill="#00f0ff"/>
+            <line x1="8" y1="38" x2="34" y2="38" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5"/>
+          </svg>
+          <div class="profile-card-title">PASAJERO</div>
+          <div class="profile-card-desc">Calcula tu tarifa antes de viajar.</div>
+        </button>
+
+      </div>
+
+      <div class="profile-version">V3.1 · CALKILOMETRO</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 2: MODO CONDUCTOR
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="screen-driver">
+    <header class="header">
+      <div class="logo" id="driver-back-btn">
+        <svg class="header-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- C exterior cyan -->
+          <path d="M27 9 A13 13 0 1 0 27 23" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <!-- Carretera interior (arco punteado) -->
+          <path d="M23 11 A9 9 0 1 0 23 21" stroke="#64748b" stroke-width="1.2" stroke-dasharray="2 2" stroke-linecap="round" fill="none"/>
+          <!-- Pin dorado -->
+          <circle cx="22" cy="11" r="3.5" fill="#ffaa00"/>
+          <path d="M22 14.5 L22 18" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
+          <!-- Destello verde (extremo de la C) -->
+          <circle cx="27" cy="23" r="2" fill="#00ff66"/>
+        </svg>
+        <span>CALKILOMETRO</span>
+        <span class="logo-mode-badge driver">CONDUCTOR</span>
+      </div>
+      <button class="btn-reset" id="resetBtn">RESET</button>
+      <button class="theme-toggle" id="theme-toggle-driver" title="Cambiar tema">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- ── Selector de ciudad conductor ─────────── -->
+    <div class="driver-city-bar" id="driver-city-bar">
+      <span class="driver-city-label">Ciudad</span>
+      <button class="driver-city-chip active" data-city="bga" type="button">Bucaramanga</button>
+      <button class="driver-city-chip" data-city="bog" type="button">Bogotá</button>
+      <button class="driver-city-chip" data-city="med" type="button">Medellín</button>
+      <button class="driver-city-chip" data-city="clo" type="button">Cali</button>
+      <button class="driver-city-chip" data-city="baq" type="button">Barranquilla</button>
+    </div>
+
+    <!-- ── Selector de vehículo ───────────────── -->
+    <div class="vehicle-selector" id="vehicle-selector">
+      <button class="vehicle-btn active" data-vehicle="car" id="vehicle-car">
+        <svg width="26" height="16" viewBox="0 0 26 16" fill="none">
+          <rect x="1" y="6" width="24" height="8" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M5 6 L8 1 H18 L21 6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+          <circle cx="6.5" cy="13.5" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="19.5" cy="13.5" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+        CARRO
+      </button>
+      <button class="vehicle-btn" data-vehicle="moto" id="vehicle-moto">
+        <svg width="26" height="18" viewBox="0 0 26 18" fill="none">
+          <circle cx="5" cy="13" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="21" cy="13" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 13 L13 5 L17 5 L21 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <line x1="13" y1="5" x2="13" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="10" y="2" width="5" height="3" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        </svg>
+        MOTO
+      </button>
+    </div>
+
+    <div class="rates-panel">
+      <div class="rate-item">
+        <label>BASE (COP)</label>
+        <input type="number" id="baseRate" value="3500">
+      </div>
+      <div class="rate-item">
+        <label>POR KM (COP)</label>
+        <input type="number" id="kmRate" value="1800">
+      </div>
+      <div class="rate-item">
+        <label>POR MIN (COP)</label>
+        <input type="number" id="minRate" value="400">
+      </div>
+      <div class="rate-item">
+        <label>MINIMA (COP)</label>
+        <input type="number" id="minFare" value="4500">
+      </div>
+    </div>
+
+    <div class="main-display">
+      <div class="label-display">TARIFA TOTAL A PAGAR</div>
+      <div class="slot-counter-wrapper">
+        <span class="slot-prefix">$</span>
+        <div id="slotContainer" style="display:none;"></div>
+        <span id="fareText">4.500</span>
+        <span class="slot-suffix">COP</span>
+      </div>
+      <div class="distance-display" id="distanceDisplay">0.00<small> km</small></div>
+      <div class="status-badge" id="statusBadge">⏸ DETENIDO</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="startBtn">▶ INICIAR</button>
+      <button class="btn btn-danger"  id="stopBtn" disabled>⏹ DETENER</button>
+    </div>
+
+    <div class="summary" id="summary">
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="label">DISTANCIA</div>
+          <div class="value" id="summaryDist" style="color:#00ff66;">0.00 km</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">TOTAL COBRADO</div>
+          <div class="value" id="summaryTotal" style="color:#00f0ff;">$0 COP</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span id="gpsStatus">BUSCANDO GPS...</span>
+      <span>V3.2</span>
+    </footer>
+    <button id="uxfix" type="button">&#8592; CAMBIAR MODO</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 3: MODO PASAJERO
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="screen-passenger">
+    <header class="header">
+      <div class="logo" id="passenger-back-btn">
+        <svg class="header-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- C exterior cyan -->
+          <path d="M27 9 A13 13 0 1 0 27 23" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <!-- Carretera interior (arco punteado) -->
+          <path d="M23 11 A9 9 0 1 0 23 21" stroke="#64748b" stroke-width="1.2" stroke-dasharray="2 2" stroke-linecap="round" fill="none"/>
+          <!-- Pin dorado -->
+          <circle cx="22" cy="11" r="3.5" fill="#ffaa00"/>
+          <path d="M22 14.5 L22 18" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
+          <!-- Destello verde (extremo de la C) -->
+          <circle cx="27" cy="23" r="2" fill="#00ff66"/>
+        </svg>
+        <span>CALKILOMETRO</span>
+        <span class="logo-mode-badge passenger">PASAJERO</span>
+      </div>
+      <button class="theme-toggle" id="theme-toggle-passenger" title="Cambiar tema">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- ── 1) ¿En qué vehículo viajarás? ────────── -->
+    <div class="pax-vehicle-question">EN QUE VEHICULO VIAJARAS?</div>
+    <div class="pax-vehicle-selector">
+      <button class="pax-vehicle-btn active" id="pax-vehicle-car" type="button">
+        <svg width="28" height="17" viewBox="0 0 28 17" fill="none">
+          <rect x="1" y="6" width="26" height="9" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M5 6 L8 1 H20 L23 6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+          <circle cx="7" cy="14.5" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="21" cy="14.5" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+        CARRO
+      </button>
+      <button class="pax-vehicle-btn" id="pax-vehicle-moto" type="button">
+        <svg width="28" height="19" viewBox="0 0 28 19" fill="none">
+          <circle cx="5" cy="14" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="23" cy="14" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M9 14 L14 5 L19 5 L23 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <line x1="14" y1="5" x2="14" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="11" y="2" width="6" height="3" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        </svg>
+        MOTO
+      </button>
+    </div>
+
+    <!-- ── 2) Ciudad ──────────────────────────────── -->
+    <div class="pax-city-bar">
+      <span class="pax-city-label">Ciudad</span>
+      <div class="city-chips" id="cityChips">
+        <span class="city-chip active" data-city="bga">Bucaramanga</span>
+        <span class="city-chip" data-city="bog">Bogotá</span>
+        <span class="city-chip" data-city="med">Medellín</span>
+        <span class="city-chip" data-city="clo">Cali</span>
+        <span class="city-chip" data-city="baq">Barranquilla</span>
+        <span class="city-chip" data-city="custom">Otra</span>
+      </div>
+    </div>
+
+    <!-- ── 3) Origen / Destino ────────────────────── -->
+    <div class="pax-hero">
+      <div class="pax-hero-label">A DONDE QUIERES VIAJAR?</div>
+
+      <!-- ORIGEN -->
+      <div class="pax-route-field">
+        <div class="pax-route-dot pax-dot-origin"></div>
+        <div class="pax-route-content">
+          <div class="pax-route-sublabel">ORIGEN</div>
+          <div class="pax-location-row">
+            <input
+              type="text"
+              id="pax-origin-text"
+              class="pax-route-input"
+              placeholder="Tu ubicación actual"
+              autocomplete="off"
+            >
+            <button class="pax-gps-btn" id="pax-gps-btn" title="Usar GPS">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="4" stroke="#00ff66" stroke-width="2"/>
+                <line x1="12" y1="2" x2="12" y2="6" stroke="#00ff66" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="18" x2="12" y2="22" stroke="#00ff66" stroke-width="2" stroke-linecap="round"/>
+                <line x1="2" y1="12" x2="6" y2="12" stroke="#00ff66" stroke-width="2" stroke-linecap="round"/>
+                <line x1="18" y1="12" x2="22" y2="12" stroke="#00ff66" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <!-- Sugerencias autocompletado origen -->
+          <div class="pax-suggestions" id="pax-origin-suggestions"></div>
+        </div>
+      </div>
+
+      <!-- línea de ruta -->
+      <div class="pax-route-line"></div>
+
+      <!-- DESTINO -->
+      <div class="pax-route-field">
+        <div class="pax-route-dot pax-dot-dest"></div>
+        <div class="pax-route-content">
+          <div class="pax-route-sublabel">DESTINO</div>
+          <input
+            type="text"
+            id="pax-dest-text"
+            class="pax-route-input"
+            placeholder="Escribe el destino"
+            autocomplete="off"
+          >
+          <!-- Sugerencias autocompletado destino -->
+          <div class="pax-suggestions" id="pax-dest-suggestions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Estado de ruteo ───────────────────────── -->
+    <div class="pax-route-status" id="pax-route-status"></div>
+
+    <!-- ── Mapa de ruta (Leaflet) ────────────────── -->
+    <div id="pax-map"></div>
+
+    <!-- ── Fallback manual (solo si OSRM falla) ─── -->
+    <div id="pax-manual-fallback" style="display:none;" class="pax-manual-fallback">
+      <div class="pax-manual-fallback-label">Sin conexion — ingresa distancia manualmente</div>
+      <div class="pax-manual-row">
+        <div class="pax-manual-item">
+          <label class="pax-manual-label">DISTANCIA (km)</label>
+          <div class="pax-manual-input-wrap">
+            <input type="number" id="pax-dist" class="pax-manual-input" value="5" min="0" step="0.1">
+            <span class="pax-manual-unit">km</span>
+          </div>
+        </div>
+        <div class="pax-manual-item">
+          <label class="pax-manual-label">TIEMPO (min)</label>
+          <div class="pax-manual-input-wrap">
+            <input type="number" id="pax-time" class="pax-manual-input" value="15" min="0">
+            <span class="pax-manual-unit">min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tarifas ocultas (activas para el motor) ─ -->
+    <!-- IDs conservados: pax-base, pax-km, pax-min, pax-minfare -->
+    <div style="display:none;">
+      <input type="number" id="pax-base"    value="3500">
+      <input type="number" id="pax-km"      value="1800">
+      <input type="number" id="pax-min"     value="400">
+      <input type="number" id="pax-minfare" value="4500">
+    </div>
+
+    <!-- ── Botón calcular ─────────────────────── -->
+    <button class="pax-calc-btn" id="pax-calc-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <polygon points="5,3 19,12 5,21" fill="#000" opacity="0.8"/>
+      </svg>
+      CALCULAR TARIFA
+    </button>
+
+    <!-- ── GPS status pasajero ───────────────── -->
+    <div class="pax-gps-status" id="pax-gps-status" style="display:none;">
+      <span id="pax-gps-text">Obteniendo ubicacion...</span>
+    </div>
+
+    <!-- ── Resultados ─────────────────────────── -->
+    <!-- IDs conservados: pax-results, pax-fare-display, pax-fare-range,
+         pax-res-dist, pax-res-time, pax-res-speed -->
+    <div class="pax-results" id="pax-results">
+      <div class="pax-results-header">
+        <div class="pax-results-title">ESTIMACION APROXIMADA</div>
+        <div class="pax-results-city" id="pax-results-city"></div>
+      </div>
+
+      <!-- Tarifa del vehículo seleccionado — display principal -->
+      <div class="pax-fare-big" id="pax-fare-display">$0<small> COP</small></div>
+      <div class="pax-fare-range" id="pax-fare-range">Rango: $0 — $0 COP</div>
+
+      <!-- Comparación carro vs moto -->
+      <div class="pax-compare" id="pax-compare">
+        <div class="pax-compare-card card-car" id="pax-card-car">
+          <div class="pax-compare-label">
+            <svg width="14" height="9" viewBox="0 0 28 17" fill="none">
+              <rect x="1" y="3" width="26" height="11" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M5 3 L8 0 H20 L23 3" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/>
+              <circle cx="7" cy="12" r="2.5" stroke="currentColor" stroke-width="2" fill="none"/>
+              <circle cx="21" cy="12" r="2.5" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            CARRO
+          </div>
+          <div class="pax-compare-fare" id="pax-fare-car">$0</div>
+          <div class="pax-compare-range" id="pax-range-car">—</div>
+        </div>
+        <div class="pax-compare-card card-moto" id="pax-card-moto">
+          <div class="pax-compare-label">
+            <svg width="14" height="10" viewBox="0 0 28 19" fill="none">
+              <circle cx="5" cy="14" r="4" stroke="currentColor" stroke-width="2" fill="none"/>
+              <circle cx="23" cy="14" r="4" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M9 14 L14 5 L19 5 L23 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            MOTO
+          </div>
+          <div class="pax-compare-fare" id="pax-fare-moto">$0</div>
+          <div class="pax-compare-range" id="pax-range-moto">—</div>
+        </div>
+      </div>
+
+      <div class="pax-stats-grid">
+        <div class="pax-stat">
+          <div class="s-label">Distancia</div>
+          <div class="s-value" id="pax-res-dist" style="color:#00ff66;">0 km</div>
+        </div>
+        <div class="pax-stat">
+          <div class="s-label">Duracion</div>
+          <div class="s-value" id="pax-res-time" style="color:#ffaa00;">0 min</div>
+        </div>
+        <div class="pax-stat">
+          <div class="s-label">Vel. media</div>
+          <div class="s-value" id="pax-res-speed" style="color:#00f0ff;">0 km/h</div>
+        </div>
+      </div>
+
+      <div class="pax-disclaimer">
+        Valor estimado. La tarifa real puede variar segun trafico, ruta y recargos del conductor.
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span>MODO PASAJERO</span>
+      <span>V3.2</span>
+    </footer>
+    <button id="uxfix-pax" type="button">&#8592; CAMBIAR MODO</button>
+  </div>
+
+</div><!-- /app-container -->
+
+<script>
+(function () {
+  'use strict';
+
+  // CKM en window — accesible desde scripts externos (initVehicle, initDriverCity, etc.)
+  window.CKM = window.CKM || {};
+
+  // ═══════════════════════════════════════════════════════════════
+  //  CKM.Router — control de pantallas / navegación
+  //  Preparado para: historial, deep-link, futuras rutas
+  // ═══════════════════════════════════════════════════════════════
+  CKM.Router = (function () {
+    const screens = {
+      profile  : document.getElementById('screen-profile'),
+      driver   : document.getElementById('screen-driver'),
+      passenger: document.getElementById('screen-passenger'),
+    };
+
+    function go(name) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      if (screens[name]) screens[name].classList.add('active');
+      localStorage.setItem('ckm_last_screen', name);
+    }
+
+    function init() {
+      // No restaurar pantalla automáticamente — siempre mostrar selección al abrir
+      // (excepto si hay un viaje activo de conductor, que maneja CKM.Driver)
+    }
+
+    return { go, init };
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  CKM.Storage — capa de persistencia unificada
+  //  Preparado para: migración a IndexedDB, usuarios, cloud sync
+  // ═══════════════════════════════════════════════════════════════
+  CKM.Storage = (function () {
+    const KEYS = {
+      RATES      : 'ckm_rates',
+      TRIP       : 'ckm_trip',
+      PAX        : 'ckm_pax_prefs',
+      FARES_PREF : 'ckm_fares_pref',  // ciudad + vehículo activos
+    };
+
+    function save(key, data) {
+      try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
+    }
+    function load(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+    }
+    function remove(key) {
+      try { localStorage.removeItem(key); } catch (e) {}
+    }
+
+    return { KEYS, save, load, remove };
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  CKM.Fares — estructura profesional de tarifas Colombia V3.3
+  //  Fuente única de verdad: ciudad × vehículo
+  //  Preparado para: tarifas nocturnas, festivos, demanda, conductor
+  // ═══════════════════════════════════════════════════════════════
+  CKM.Fares = (function () {
+
+    // ── Tabla maestra de tarifas (COP 2025) ──────────────────────
+    // Fórmula activa: total = MAX(minFare, distancia × kmRate)
+    // Fuente: precios reales calle Floridablanca/Bucaramanga junio 2025
+    //   Ruta 2 km → $9.000-$10.000 (taxi) / $8.000-$9.000 (inDrive)
+    //   Ruta El Reposo → Clínica San Luis → $15.500
+    //
+    // base y minuteRate se conservan en la estructura para compatibilidad
+    // con los inputs del conductor y extensión futura, pero la fórmula
+    // actualmente los ignora (valor 0).
+    //
+    // Preparado para extensión futura:
+    //   minuteRate      : cobro por tiempo de espera/tráfico
+    //   nightSurcharge  : 0.30 (30% recargo 20h-06h)
+    //   holidaySurcharge: 0.20 (festivos)
+    //   demandMultiplier: 1.0-2.5
+    //   conductorOverride: null (tarifa propia)
+    const TARIFFS = {
+      bga: {
+        name: 'Bucaramanga / Floridablanca',
+        car : { base: 0, kmRate: 1900, minuteRate: 0, minFare: 8500 },
+        moto: { base: 0, kmRate: 1500, minuteRate: 0, minFare: 6000 },
+        // Validación de calle jun-2025:
+        // Carro 2km → MAX(8500, 2×1900=3800) = $8.500 ✓
+        // Carro 8.5km → MAX(8500, 8.5×1900=16150) = $16.150 ≈ $15.500 real ✓
+        // Moto 2km → MAX(6000, 2×1500=3000) = $6.000 ✓
+        // Moto 5km → MAX(6000, 5×1500=7500) = $7.500 ✓
+        // Moto 7km → MAX(6000, 7×1500=10500) = $10.500 ✓ (real: 8000-10000)
+      },
+      bog: {
+        name: 'Bogotá',
+        car : { base: 0, kmRate: 2400, minuteRate: 0, minFare: 10500 },
+        moto: { base: 0, kmRate: 1400, minuteRate: 0, minFare: 5500 },
+      },
+      med: {
+        name: 'Medellín',
+        car : { base: 0, kmRate: 2200, minuteRate: 0, minFare: 9500 },
+        moto: { base: 0, kmRate: 1300, minuteRate: 0, minFare: 5000 },
+      },
+      clo: {
+        name: 'Cali',
+        car : { base: 0, kmRate: 2000, minuteRate: 0, minFare: 9000 },
+        moto: { base: 0, kmRate: 1200, minuteRate: 0, minFare: 4500 },
+      },
+      baq: {
+        name: 'Barranquilla',
+        car : { base: 0, kmRate: 1950, minuteRate: 0, minFare: 9000 },
+        moto: { base: 0, kmRate: 1150, minuteRate: 0, minFare: 4200 },
+      },
+      custom: {
+        name: 'Personalizada',
+        car : { base: 0, kmRate: 1900, minuteRate: 0, minFare: 8500 },
+        moto: { base: 0, kmRate: 1500, minuteRate: 0, minFare: 6000 },
+      },
+    };
+
+    // ── Valores por defecto ───────────────────────────────────────
+    const DEFAULT_CITY    = 'bga';
+    const DEFAULT_VEHICLE = 'car';
+
+    // ── Estado activo (en memoria) ────────────────────────────────
+    let _city    = DEFAULT_CITY;
+    let _vehicle = DEFAULT_VEHICLE;
+
+    // ── API pública ───────────────────────────────────────────────
+
+    // Obtener tarifa para ciudad+vehículo
+    // Devuelve shape compatible con CKM.Driver.getRates() y CKM.FareEngine.calculate()
+    function getTariff(city, vehicle) {
+      const c = TARIFFS[city]    || TARIFFS[DEFAULT_CITY];
+      const v = c[vehicle]       || c[DEFAULT_VEHICLE];
+      return {
+        base   : v.base,
+        perKm  : v.kmRate,
+        perMin : v.minuteRate,
+        minFare: v.minFare,
+        // Metadatos para extensión futura
+        _city   : city,
+        _vehicle: vehicle,
+        _source : 'CKM.Fares',
+      };
+    }
+
+    // Obtener tarifa activa (ciudad y vehículo en uso)
+    function getActive() {
+      return getTariff(_city, _vehicle);
+    }
+
+    // Cambiar ciudad activa
+    function setCity(city) {
+      if (TARIFFS[city]) _city = city;
+    }
+
+    // Cambiar vehículo activo
+    function setVehicle(vehicle) {
+      if (['car', 'moto'].includes(vehicle)) _vehicle = vehicle;
+    }
+
+    // Getters de estado
+    function getCity()    { return _city; }
+    function getVehicle() { return _vehicle; }
+
+    // Lista de ciudades para UI
+    function getCities() {
+      return Object.entries(TARIFFS).map(([key, val]) => ({
+        key,
+        name: val.name,
+      }));
+    }
+
+    // Tarifa de ciudad específica sin modificar estado
+    function getPreset(city) {
+      return TARIFFS[city] || TARIFFS[DEFAULT_CITY];
+    }
+
+    // Compatibilidad con CKM.FareEngine.getPreset() que usa CKM.Passenger
+    // Devuelve shape flat {base, perKm, perMin, minFare} para el vehículo activo
+    function getPresetFlat(city) {
+      const c   = TARIFFS[city] || TARIFFS[DEFAULT_CITY];
+      const v   = c[_vehicle]   || c[DEFAULT_VEHICLE];
+      return {
+        name   : c.name,
+        base   : v.base,
+        perKm  : v.kmRate,
+        perMin : v.minuteRate,
+        minFare: v.minFare,
+      };
+    }
+
+    // Futuro: aplicar recargos (nocturno, festivo, demanda)
+    // function applyModifiers(tariff, modifiers) { ... }
+
+    return {
+      getTariff,
+      getActive,
+      setCity,
+      setVehicle,
+      getCity,
+      getVehicle,
+      getCities,
+      getPreset,
+      getPresetFlat,
+      TARIFFS, // expuesto para lectura, no modificar directamente
+    };
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  CKM.FareEngine — motor de cálculo de tarifas
+  //  Compartido entre conductor y pasajero
+  //  Delegación a CKM.Fares para la tabla maestra
+  //  calculate() y estimateRange() NO CAMBIAN — misma firma
+  // ═══════════════════════════════════════════════════════════════
+  CKM.FareEngine = (function () {
+
+    // ── Compatibilidad con CKM.Passenger (usa getPreset) ─────────
+    // Delega a CKM.Fares.getPresetFlat() para tener el vehículo correcto
+    function getPreset(cityKey) {
+      return CKM.Fares.getPresetFlat(cityKey);
+    }
+
+    function getAllPresets() {
+      // Devuelve presets en formato flat (compatibilidad CKM.Passenger)
+      const result = {};
+      CKM.Fares.getCities().forEach(function(c) {
+        result[c.key] = CKM.Fares.getPresetFlat(c.key);
+      });
+      return result;
+    }
+
+    // ── Motor de cálculo V3.4 ─────────────────────────────────────
+    // Fórmula: MAX(minFare, distancia × perKm)
+    // Calibrada con precios reales de calle Floridablanca jun-2025.
+    // base y perMin se leen pero no se aplican en esta versión.
+    // Para reactivar cobro por tiempo: descomentar la línea perMin.
+    // rates = { base, perKm, perMin, minFare }  ← shape sin cambios
+    function calculate(rates, distanceKm, durationMin) {
+      const perKm   = parseFloat(rates.perKm)   || 0;
+      const minFare = parseFloat(rates.minFare)  || 0;
+      // const base    = parseFloat(rates.base)   || 0;  // desactivado V3.4
+      // const perMin  = parseFloat(rates.perMin) || 0;  // desactivado V3.4
+      const raw = distanceKm * perKm;
+      return Math.max(raw, minFare);
+    }
+
+    // Rango estimado pasajero (±10-18% tráfico) — SIN CAMBIOS
+    function estimateRange(fare) {
+      return {
+        low : Math.round(fare * 0.90),
+        mid : Math.round(fare),
+        high: Math.round(fare * 1.18),
+      };
+    }
+
+    return { calculate, estimateRange, getPreset, getAllPresets };
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  CKM.Driver — módulo conductor (lógica original intacta)
+  //  GPS, timer, slots animados, persistencia de viaje
+  // ═══════════════════════════════════════════════════════════════
+  CKM.Driver = (function () {
+
+    // DOM
+    const distanceDisplay = document.getElementById('distanceDisplay');
+    const statusBadge     = document.getElementById('statusBadge');
+    const startBtn        = document.getElementById('startBtn');
+    const stopBtn         = document.getElementById('stopBtn');
+    const resetBtn        = document.getElementById('resetBtn');
+    const summary         = document.getElementById('summary');
+    const summaryDist     = document.getElementById('summaryDist');
+    const summaryTotal    = document.getElementById('summaryTotal');
+    const gpsStatus       = document.getElementById('gpsStatus');
+    const slotContainer   = document.getElementById('slotContainer');
+    const baseRateInput   = document.getElementById('baseRate');
+    const kmRateInput     = document.getElementById('kmRate');
+    const minRateInput    = document.getElementById('minRate');
+    const minFareInput    = document.getElementById('minFare');
+
+    // Estado
+    let isRunning        = false;
+    let startTime        = null;
+    let elapsedSeconds   = 0;
+    let totalDistance    = 0;
+    let lastPosition     = null;
+    let watchId          = null;
+    let timerInterval    = null;
+    let fare             = 0;
+    let currentDigitsString = '';
+
+    // ── Tarifas ──────────────────────────────────────────────────
+    function getRates() {
+      return {
+        base   : parseFloat(baseRateInput.value) || 0,
+        perKm  : parseFloat(kmRateInput.value)   || 0,
+        perMin : parseFloat(minRateInput.value)  || 0,
+        minFare: parseFloat(minFareInput.value)  || 0,
+      };
+    }
+
+    function saveRates() {
+      CKM.Storage.save(CKM.Storage.KEYS.RATES, {
+        base   : baseRateInput.value,
+        perKm  : kmRateInput.value,
+        perMin : minRateInput.value,
+        minFare: minFareInput.value,
+      });
+    }
+
+    function loadRates() {
+      const s = CKM.Storage.load(CKM.Storage.KEYS.RATES);
+      if (!s) return;
+      if (s.base)    baseRateInput.value = s.base;
+      if (s.perKm)   kmRateInput.value   = s.perKm;
+      if (s.perMin)  minRateInput.value  = s.perMin;
+      if (s.minFare) minFareInput.value  = s.minFare;
+    }
+
+    // ── Persistencia de viaje ────────────────────────────────────
+    function saveTripState() {
+      CKM.Storage.save(CKM.Storage.KEYS.TRIP, {
+        isRunning, startTime, elapsedSeconds, totalDistance,
+      });
+    }
+
+    function clearTripState() {
+      CKM.Storage.remove(CKM.Storage.KEYS.TRIP);
+    }
+
+    // ── Slots animados (sin cambios) ─────────────────────────────
+    function setupSlots(targetStr) {
+      slotContainer.innerHTML = '';
+      currentDigitsString = targetStr;
+      for (let i = 0; i < targetStr.length; i++) {
+        const char = targetStr[i];
+        const slot  = document.createElement('div');
+        slot.className = 'digit-slot';
+        if (char === '.') slot.style.width = '0.6rem';
+        const track = document.createElement('div');
+        track.className = 'digit-track';
+        track.id = `track-${i}`;
+        if (char === '.') {
+          track.innerHTML = '<span>.</span>';
+        } else {
+          for (let d = 0; d <= 9; d++) track.innerHTML += `<span>${d}</span>`;
+        }
+        slot.appendChild(track);
+        slotContainer.appendChild(slot);
+      }
+    }
+
+    function animateSlots(targetStr) {
+      if (targetStr.length !== currentDigitsString.length) setupSlots(targetStr);
+      for (let i = 0; i < targetStr.length; i++) {
+        const char = targetStr[i];
+        if (char === '.') continue;
+        const track = document.getElementById(`track-${i}`);
+        if (track) track.style.transform = `translateY(-${(parseInt(char) || 0) * 3.2}rem)`;
+      }
+      currentDigitsString = targetStr;
+    }
+
+    // ── Display ──────────────────────────────────────────────────
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(Math.floor(sec % 60)).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateDisplay() {
+      const rates = getRates();
+      fare = CKM.FareEngine.calculate(rates, totalDistance, elapsedSeconds / 60);
+      animateSlots(Math.round(fare).toLocaleString('es-CO'));
+      distanceDisplay.innerHTML = `${totalDistance.toFixed(2)}<small> km</small>`;
+      if (isRunning) {
+        const timeEl = document.getElementById('timeDisplay');
+        if (timeEl) timeEl.textContent = formatTime(elapsedSeconds);
+        saveTripState();
+      }
+    }
+
+    function updateStatus(text, isActive = false) {
+      if (isActive) {
+        statusBadge.innerHTML = `${text} <span id="timeDisplay" style="font-family:monospace;color:#ffaa00;font-size:0.7rem;margin-left:6px;letter-spacing:1px;">00:00</span>`;
+      } else {
+        statusBadge.textContent = text;
+      }
+      statusBadge.style.color       = isActive ? '#00ff66' : '#00f0ff';
+      statusBadge.style.borderColor = isActive ? 'rgba(0,255,102,0.3)' : 'rgba(0,240,255,0.2)';
+    }
+
+    // ── GPS (original + filtros v2) ───────────────────────────────
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+      const R    = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a    = Math.sin(dLat / 2) ** 2
+        + Math.cos(lat1 * Math.PI / 180)
+        * Math.cos(lat2 * Math.PI / 180)
+        * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function startGPS() {
+      if (watchId) return; // idempotente: evita watcher huérfano si se llama dos veces
+      if (!navigator.geolocation) { gpsStatus.textContent = '❌ NO GPS'; return; }
+      gpsStatus.textContent = '🛰️ CONECTANDO...';
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy, speed } = pos.coords;
+          if (accuracy > 25) { gpsStatus.textContent = `⚠️ SEÑAL DÉBIL (±${Math.round(accuracy)}m)`; return; }
+          if (speed !== null && speed > 50) return;
+          gpsStatus.textContent = `🛰️ LAT: ${latitude.toFixed(4)}°`;
+          if (lastPosition) {
+            const dist = haversineDistance(lastPosition.lat, lastPosition.lng, latitude, longitude);
+            if (dist > 0.003) totalDistance += dist;
+          }
+          lastPosition = { lat: latitude, lng: longitude };
+          updateDisplay();
+        },
+        () => { gpsStatus.textContent = '⚠️ VERIFIQUE GPS'; },
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 6000 }
+      );
+    }
+
+    function stopGPS() {
+      if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    }
+
+    // ── Timer ─────────────────────────────────────────────────────
+    function startTimer() {
+      if (timerInterval) return;
+      startTime = Date.now() - elapsedSeconds * 1000;
+      timerInterval = setInterval(() => {
+        elapsedSeconds = (Date.now() - startTime) / 1000;
+        updateDisplay();
+      }, 400);
+    }
+
+    function stopTimer() {
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+
+    // ── Controles ─────────────────────────────────────────────────
+    function toggleInputs(disabled) {
+      [baseRateInput, kmRateInput, minRateInput, minFareInput]
+        .forEach(i => i.disabled = disabled);
+    }
+
+    function startTrip() {
+      if (isRunning) return;
+      isRunning = true;
+      startTime = Date.now() - elapsedSeconds * 1000;
+      startGPS(); startTimer();
+      updateStatus('🟢 EN VIAJE', true);
+      startBtn.disabled = true; stopBtn.disabled = false;
+      toggleInputs(true); summary.classList.remove('show');
+      saveTripState();
+    }
+
+    function stopTrip() {
+      // 1) SIEMPRE detener GPS y timer, sin importar el estado interno.
+      // stopGPS()/stopTimer() son idempotentes (ya verifican watchId/
+      // timerInterval antes de actuar), así que llamarlas sin condición
+      // es seguro y garantiza que DETENER nunca quede sin efecto.
+      stopGPS();
+      stopTimer();
+
+      // 2) Si había un viaje realmente en curso, cerrarlo:
+      //    guardar resumen y reiniciar el estado para el próximo viaje.
+      if (isRunning) {
+        isRunning = false;
+        clearTripState();
+
+        summary.classList.add('show');
+        summaryDist.textContent  = totalDistance.toFixed(2) + ' km';
+        summaryTotal.textContent = '$' + Math.round(fare).toLocaleString('es-CO') + ' COP';
+
+        elapsedSeconds = 0;
+        totalDistance  = 0;
+        fare           = 0;
+        startTime      = null;
+        lastPosition   = null;
+
+        const minFare = CKM.FareEngine.calculate(getRates(), 0, 0);
+        setupSlots(Math.round(minFare).toLocaleString('es-CO'));
+        updateDisplay();
+      }
+      // 3) Si NO había viaje corriendo (isRunning ya era false):
+      //    no tocar el resumen anterior ni reiniciar datos —
+      //    evita que un doble-click en DETENER borre el resumen
+      //    del viaje que ya se mostró.
+
+      updateStatus('⏸ DETENIDO', false);
+      startBtn.disabled = false; stopBtn.disabled = true;
+      toggleInputs(false);
+    }
+
+    function resetTrip() {
+      isRunning = false; stopTimer(); stopGPS(); clearTripState();
+      elapsedSeconds = 0; totalDistance = 0; lastPosition = null;
+      fare = 0; startTime = null;
+      // Mostrar tarifa mínima real desde el motor
+      const minFare = CKM.FareEngine.calculate(getRates(), 0, 0);
+      setupSlots(Math.round(minFare).toLocaleString('es-CO'));
+      updateDisplay();
+      updateStatus('⏸ DETENIDO', false);
+      startBtn.disabled = false; stopBtn.disabled = true;
+      toggleInputs(false); summary.classList.remove('show');
+      gpsStatus.textContent = '📡 BUSCANDO GPS...';
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    function init() {
+      loadRates();
+
+      // Recuperar viaje activo
+      const saved = CKM.Storage.load(CKM.Storage.KEYS.TRIP);
+      if (saved && saved.isRunning && saved.startTime) {
+        const segundosFuera = (Date.now() - saved.startTime) / 1000;
+        totalDistance  = saved.totalDistance  || 0;
+        elapsedSeconds = (saved.elapsedSeconds || 0) + segundosFuera;
+        startTime      = Date.now() - elapsedSeconds * 1000;
+        isRunning      = true;
+        // Usar tarifa real (mínima aplicada por FareEngine)
+        const initFare = CKM.FareEngine.calculate(getRates(), totalDistance, elapsedSeconds / 60);
+        setupSlots(Math.round(initFare).toLocaleString('es-CO'));
+        updateDisplay();
+        updateStatus('🟢 EN VIAJE', true);
+        startBtn.disabled = true; stopBtn.disabled = false;
+        toggleInputs(true);
+        gpsStatus.textContent = '🛰️ RECONECTANDO...';
+        startGPS(); startTimer();
+        return true;
+      }
+
+      // Sin viaje activo — mostrar tarifa mínima configurada desde el arranque
+      const initFare = CKM.FareEngine.calculate(getRates(), 0, 0);
+      setupSlots(Math.round(initFare).toLocaleString('es-CO'));
+      updateDisplay();
+      updateStatus('⏸ DETENIDO', false);
+      return false;
+    }
+
+    // ── Eventos ───────────────────────────────────────────────────
+    function bindEvents() {
+      startBtn.addEventListener('click', startTrip);
+      stopBtn.addEventListener('click', stopTrip);
+      resetBtn.addEventListener('click', resetTrip);
+      [baseRateInput, kmRateInput, minRateInput, minFareInput]
+        .forEach(inp => inp.addEventListener('input', () => { saveRates(); updateDisplay(); }));
+    }
+
+    return { init, bindEvents };
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  CKM.Passenger v2 — ruteo real con OSRM + Leaflet + fallback manual
+  //  APIs usadas (gratuitas, sin clave):
+  //    Geocoding : Nominatim (OpenStreetMap)
+  //    Routing   : OSRM (router.project-osrm.org)
+  //    Mapa      : Leaflet + OpenStreetMap tiles
+  //  Si no hay internet → modo fallback con entrada manual
+  //  NO toca: CKM.Driver, GPS, CKM.FareEngine, CKM.Fares
+  // ═══════════════════════════════════════════════════════════════
+  CKM.Passenger = (function () {
+
+    // ── DOM ──────────────────────────────────────────────────────
+    const paxBase     = document.getElementById('pax-base');
+    const paxKm       = document.getElementById('pax-km');
+    const paxMin      = document.getElementById('pax-min');
+    const paxMinFare  = document.getElementById('pax-minfare');
+    const paxDist     = document.getElementById('pax-dist');
+    const paxTime     = document.getElementById('pax-time');
+    const calcBtn     = document.getElementById('pax-calc-btn');
+    const results     = document.getElementById('pax-results');
+    const fareDisplay = document.getElementById('pax-fare-display');
+    const fareRange   = document.getElementById('pax-fare-range');
+    const resDist     = document.getElementById('pax-res-dist');
+    const resTime     = document.getElementById('pax-res-time');
+    const resSpeed    = document.getElementById('pax-res-speed');
+    const cityChips   = document.querySelectorAll('.city-chip');
+    const paxCarBtn   = document.getElementById('pax-vehicle-car');
+    const paxMotoBtn  = document.getElementById('pax-vehicle-moto');
+    const compareEl   = document.getElementById('pax-compare');
+    const fareCar     = document.getElementById('pax-fare-car');
+    const fareMoto    = document.getElementById('pax-fare-moto');
+    const rangeCar    = document.getElementById('pax-range-car');
+    const rangeMoto   = document.getElementById('pax-range-moto');
+    const cardCar     = document.getElementById('pax-card-car');
+    const cardMoto    = document.getElementById('pax-card-moto');
+    const originInput = document.getElementById('pax-origin-text');
+    const destInput   = document.getElementById('pax-dest-text');
+    const routeStatus = document.getElementById('pax-route-status');
+    const mapEl       = document.getElementById('pax-map');
+    const fallbackEl  = document.getElementById('pax-manual-fallback');
+
+    // ── Estado ───────────────────────────────────────────────────
+    let activeCity    = 'bga';
+    let activeVehicle = 'car';
+    let leafletMap    = null;
+    let routeLayer    = null;
+    let isFallback    = false;
+    let lastRouteData = null;  // { distKm, durationMin } — persiste entre cambios de vehículo
+    let geocodeBlocked = false; // true si Nominatim respondió 403/429 (bloqueo, no "no encontrado")
+
+    // ── Tarifas ───────────────────────────────────────────────────
+    function applyPreset(cityKey) {
+      const t = CKM.Fares.getTariff(cityKey, activeVehicle);
+      paxBase.value    = t.base;
+      paxKm.value      = t.perKm;
+      paxMin.value     = t.perMin;
+      paxMinFare.value = t.minFare;
+    }
+
+    function getRates(vehicle) {
+      return CKM.Fares.getTariff(activeCity, vehicle || activeVehicle);
+    }
+
+    function setVehicle(v) {
+      activeVehicle = v;
+      if (paxCarBtn)  paxCarBtn.classList.toggle('active',  v === 'car');
+      if (paxMotoBtn) paxMotoBtn.classList.toggle('active', v === 'moto');
+      applyPreset(activeCity);
+      // Si ya hay una ruta calculada → recalcular tarifa inmediatamente
+      // sin volver a llamar a OSRM (la distancia no cambia, solo la tarifa)
+      if (lastRouteData) {
+        renderResults(lastRouteData.distKm, lastRouteData.durationMin);
+      } else {
+        if (results) results.classList.remove('show');
+      }
+    }
+
+    // ── GPS pasajero (posición aproximada para priorizar resultados) ──
+    // Solo lectura — no interfiere con CKM.Driver ni el GPS conductor
+    let userGps = null;  // { lat, lon } o null si no disponible
+
+    function captureUserGps() {
+      if (!navigator.geolocation || userGps) return;
+      navigator.geolocation.getCurrentPosition(
+        pos => { userGps = { lat: pos.coords.latitude, lon: pos.coords.longitude }; },
+        ()  => {},
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+      );
+    }
+
+    // Distancia Haversine en km entre dos puntos — usada para validar resultados
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const d = (a, b) => (b - a) * Math.PI / 180;
+      const dLat = d(lat1, lat2), dLon = d(lon1, lon2);
+      const a = Math.sin(dLat/2)**2
+              + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // Nombre corto: tomar solo la primera parte del display_name de Nominatim
+    function shortName(displayName) {
+      // Nominatim devuelve "Clínica San Luis, Calle X, Floridablanca, Santander, Colombia"
+      // Retornamos solo la primera parte hasta la primera coma
+      return displayName.split(',')[0].trim();
+    }
+
+    // ── Geocoding con Nominatim ───────────────────────────────────
+    // Devuelve { lat, lon, name } o null
+    // Estrategia: 4 intentos con contexto progresivamente más amplio
+    async function geocode(query) {
+      geocodeBlocked = false; // reset por cada llamada
+      const cityNames = {
+        bga: 'Bucaramanga', bog: 'Bogotá', med: 'Medellín',
+        clo: 'Cali',        baq: 'Barranquilla', custom: ''
+      };
+      const metroNames = {
+        bga: 'Floridablanca', bog: '', med: '', clo: '', baq: '', custom: ''
+      };
+      const deptNames = {
+        bga: 'Santander', bog: 'Cundinamarca', med: 'Antioquia',
+        clo: 'Valle del Cauca', baq: 'Atlántico', custom: ''
+      };
+
+      const city  = cityNames[activeCity]  || '';
+      const metro = metroNames[activeCity] || '';
+      const dept  = deptNames[activeCity]  || '';
+
+      // Limpiar la query: quitar puntuación, normalizar espacios,
+      // expandir abreviaciones comunes colombianas
+      function normalizeQuery(q) {
+        return q
+          .trim()
+          .replace(/\s+/g, ' ')
+          .replace(/cll?\b/gi, 'Calle')
+          .replace(/\bcra?\b/gi, 'Carrera')
+          .replace(/\bkm\b/gi, '')
+          .replace(/\bav\b\.?/gi, 'Avenida')
+          .replace(/\bclín[a-z]*\b/gi, 'Clínica')
+          .replace(/\bhosp\b/gi, 'Hospital')
+          .replace(/\bbarr\b/gi, 'Barrio')
+          .replace(/\bconj\b/gi, 'Conjunto')
+          // Normalizar símbolo # de nomenclatura colombiana:
+          // Nominatim no reconoce bien "Calle 45 # 29-18" — lo convierte
+          // a "Calle 45 29-18" que es más compatible con OSM.
+          .replace(/\s*#\s*/g, ' ');
+      }
+
+      // Extraer "barrio X" si el usuario lo escribió pegado a la
+      // nomenclatura (común en escritura informal: "calle 45 #23-10
+      // barrio la cumbre"). Se separa para usarlo como contexto propio
+      // en vez de quedar mezclado en la misma frase de la dirección,
+      // que confunde a Nominatim. No se elimina de la query original:
+      // solo se agrega una variante adicional de intento.
+      function extractBarrio(q) {
+        const m = q.match(/\bbarrio\s+([a-záéíóúñ0-9' -]+)$/i);
+        if (!m) return { withoutBarrio: q, barrio: null };
+        const barrio = m[1].trim();
+        const withoutBarrio = q.slice(0, m.index).trim().replace(/,$/, '');
+        return { withoutBarrio, barrio };
+      }
+
+      const cleanQuery = normalizeQuery(query);
+      const { withoutBarrio: cleanQueryNoBarrio, barrio } = extractBarrio(cleanQuery);
+      const base = 'https://us1.locationiq.com/v1/search';
+      const LIQ_KEY = 'pk.5601656c00d57b1281aea8a02213055f';
+
+      // Centro de ciudad para ordenar por proximidad
+      const cityCenters = {
+        bga: { lat: 7.119349,  lon: -73.122742 },
+        bog: { lat: 4.710989,  lon: -74.072092 },
+        med: { lat: 6.244203,  lon: -75.581215 },
+        clo: { lat: 3.451647,  lon: -76.531985 },
+        baq: { lat: 10.963889, lon: -74.796387 },
+      };
+      const ref = userGps || cityCenters[activeCity] || null;
+
+      const alreadyHasCity = city && cleanQuery.toLowerCase().includes(city.toLowerCase());
+      const alreadyHasMeta = dept && cleanQuery.toLowerCase().includes(dept.toLowerCase());
+
+      // Construir intentos de mayor a menor especificidad
+      const attempts = [];
+      // Si se detectó "barrio X" pegado a la dirección, intentar primero
+      // con el barrio como contexto separado (más preciso para Nominatim
+      // que la frase mezclada).
+      if (barrio && !alreadyHasCity) {
+        if (metro) attempts.push(`${cleanQueryNoBarrio}, Barrio ${barrio}, ${metro}, ${dept}, Colombia`);
+        if (city)  attempts.push(`${cleanQueryNoBarrio}, Barrio ${barrio}, ${city}, ${dept}, Colombia`);
+      }
+      if (!alreadyHasCity) {
+        if (metro) attempts.push(`${cleanQuery}, ${metro}, ${dept}, Colombia`);
+        if (city)  attempts.push(`${cleanQuery}, ${city}, ${dept}, Colombia`);
+      } else {
+        // Si ya tiene la ciudad en el texto, igual intentar con metro
+        // para mayor especificidad (no saltarse este nivel)
+        if (metro) attempts.push(`${cleanQuery}, ${metro}, ${dept}, Colombia`);
+      }
+      if (!alreadyHasMeta && dept) attempts.push(`${cleanQuery}, ${dept}, Colombia`);
+      attempts.push(`${cleanQuery}, Colombia`);
+
+      // Fallback de intersección: "Calle 45 29-18" → "Calle 45 con Carrera 29"
+      // y viceversa "Carrera 29 45-18" → "Carrera 29 con Calle 45".
+      // En Colombia el primer número antes del guión es siempre la vía
+      // transversal — si la vía principal es Calle, la transversal es
+      // Carrera, y al revés. Esto ubica la cuadra exacta aunque Nominatim
+      // no tenga el número de puerta en OSM.
+      const matchNom = cleanQuery.match(/\b(Calle|Carrera|Avenida)\s+(\d+[\w]*)\s+(\d+)-\d+/i);
+      if (matchNom) {
+        const viaPpal   = matchNom[1];  // Calle / Carrera / Avenida
+        const numPpal   = matchNom[2];  // número de la vía principal
+        const numTrans  = matchNom[3];  // primer número antes del guión = vía transversal
+        // Determinar el nombre de la vía transversal
+        const viaTransversal = /calle/i.test(viaPpal) ? 'Carrera'
+                             : /carrera/i.test(viaPpal) ? 'Calle'
+                             : 'Calle'; // para Avenida, asumir Calle como transversal
+        const interseccion = `${viaPpal} ${numPpal} con ${viaTransversal} ${numTrans}`;
+        if (city)  attempts.push(`${interseccion}, ${city}, ${dept}, Colombia`);
+        if (metro) attempts.push(`${interseccion}, ${metro}, ${dept}, Colombia`);
+      }
+
+      // Fallback: intentar sin número de casa (solo calle/carrera + ciudad)
+      // útil cuando Nominatim no tiene el número exacto en OSM pero sí la vía
+      const sinNumero = cleanQuery.replace(/\s+\d+-\d+/, '').trim();
+      if (sinNumero !== cleanQuery) {
+        if (city) attempts.push(`${sinNumero}, ${city}, ${dept}, Colombia`);
+      }
+      // Último recurso: query original sin normalizar + Colombia
+      if (cleanQuery !== query.trim()) attempts.push(`${query.trim()}, Colombia`);
+
+      for (let i = 0; i < attempts.length; i++) {
+        // Respetar rate limit: 1.1 s entre intentos (excepto el primero)
+        if (i > 0) await new Promise(r => setTimeout(r, 1100));
+
+        try {
+          const url = `${base}?key=${LIQ_KEY}&format=json&limit=5&countrycodes=co&addressdetails=1&q=${encodeURIComponent(attempts[i])}`;
+          // LocationIQ: Accept-Language mejora resultados en español.
+          const res = await fetch(url, {
+            headers: {
+              'Accept-Language': 'es-CO,es',
+            },
+          });
+
+          // LocationIQ devuelve 401/403/429 cuando la key es inválida o hay rate limit.
+          // Eso NO significa "lugar no encontrado" — es bloqueo de red.
+          if (res.status === 401 || res.status === 403 || res.status === 429) {
+            geocodeBlocked = true;
+            continue; // probar siguiente intento por si acaso
+          }
+          if (!res.ok) continue;
+
+          const data = await res.json();
+          if (!data || !data.length) continue;
+
+          const candidates = data.map(r => ({
+            lat : parseFloat(r.lat),
+            lon : parseFloat(r.lon),
+            name: r.display_name,
+            dist: ref ? haversineKm(ref.lat, ref.lon, parseFloat(r.lat), parseFloat(r.lon)) : 999,
+          }));
+          // NO reordenar por distancia al usuario — LocationIQ ya devuelve
+          // los candidatos en orden de relevancia respecto a la query, que es
+          // más preciso que ordenar por cercanía al pasajero (lo cual sesgaba
+          // la selección hacia puntos de la vía cercanos al usuario, no al
+          // destino real). El GPS del usuario solo se usa para descartar
+          // resultados imposibles (> 80 km), no para elegir entre candidatos.
+
+          const best = candidates[0];
+          // Radio de 80 km — cubre toda el área metropolitana con margen
+          if (userGps && best.dist > 80) {
+            const nearby = candidates.find(c => c.dist <= 80);
+            if (nearby) return { lat: nearby.lat, lon: nearby.lon, name: shortName(nearby.name) };
+            continue;
+          }
+
+          return { lat: best.lat, lon: best.lon, name: shortName(best.name) };
+        } catch (_) { /* error de red — continuar */ }
+      }
+
+      return null;
+    }
+
+    // ── Autocompletado tipo Google Maps ──────────────────────────
+    // Devuelve hasta 5 sugerencias { lat, lon, shortName, city, dept }
+    // Reusa el mismo endpoint de Nominatim que geocode(), pero sin
+    // reintentos múltiples — es solo para sugerir mientras se escribe.
+    let suggestAbortCtrl = null;
+    async function geocodeSuggest(query) {
+      if (!query || query.trim().length < 3) return [];
+
+      const deptNames = {
+        bga: 'Santander', bog: 'Cundinamarca', med: 'Antioquia',
+        clo: 'Valle del Cauca', baq: 'Atlántico', custom: ''
+      };
+      const metroNames = {
+        bga: 'Floridablanca', bog: '', med: '', clo: '', baq: '', custom: ''
+      };
+      const dept  = deptNames[activeCity]  || '';
+      const metro = metroNames[activeCity] || '';
+
+      // Normalización y extracción de barrio duplicadas de geocode()
+      // a propósito (no compartidas) para no tocar esa función, que
+      // ya está validada en producción. Mismo comportamiento, scope
+      // separado.
+      function normalizeQuerySuggest(q) {
+        return q
+          .trim()
+          .replace(/\s+/g, ' ')
+          .replace(/cll?\b/gi, 'Calle')
+          .replace(/\bcra?\b/gi, 'Carrera')
+          .replace(/\bkm\b/gi, '')
+          .replace(/\bav\b\.?/gi, 'Avenida')
+          .replace(/\bclín[a-z]*\b/gi, 'Clínica')
+          .replace(/\bhosp\b/gi, 'Hospital')
+          .replace(/\bbarr\b/gi, 'Barrio')
+          .replace(/\bconj\b/gi, 'Conjunto')
+          .replace(/\s*#\s*/g, ' ');
+      }
+      function extractBarrioSuggest(q) {
+        const m = q.match(/\bbarrio\s+([a-záéíóúñ0-9' -]+)$/i);
+        if (!m) return { withoutBarrio: q, barrio: null };
+        const barrio = m[1].trim();
+        const withoutBarrio = q.slice(0, m.index).trim().replace(/,$/, '');
+        return { withoutBarrio, barrio };
+      }
+
+      const cleanQuery = normalizeQuerySuggest(query);
+      const { withoutBarrio, barrio } = extractBarrioSuggest(cleanQuery);
+
+      // Si se detectó "barrio X", construir la query con el barrio
+      // como contexto separado (igual estrategia que geocode()).
+      // Si no, mantener exactamente el comportamiento anterior.
+      const q = barrio
+        ? (metro
+            ? `${withoutBarrio}, Barrio ${barrio}, ${metro}, ${dept}, Colombia`
+            : `${withoutBarrio}, Barrio ${barrio}, ${dept}, Colombia`)
+        : (metro
+            ? `${cleanQuery}, ${metro}, ${dept}, Colombia`
+            : (dept ? `${cleanQuery}, ${dept}, Colombia` : `${cleanQuery}, Colombia`));
+
+      // Cancelar petición anterior si el usuario sigue escribiendo
+      if (suggestAbortCtrl) suggestAbortCtrl.abort();
+      suggestAbortCtrl = new AbortController();
+
+      try {
+        const url = `https://us1.locationiq.com/v1/search?key=pk.5601656c00d57b1281aea8a02213055f&format=json&limit=5&countrycodes=co&addressdetails=1&q=${encodeURIComponent(q)}`;
+        const res = await fetch(url, {
+          headers: { 'Accept-Language': 'es-CO,es' },
+          signal: suggestAbortCtrl.signal,
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        if (!data || !data.length) return [];
+
+        // Filtro de área metropolitana: para Bucaramanga aceptar solo
+        // resultados de los 4 municipios reales del área metro.
+        // Rechaza homónimos de otras ciudades/departamentos.
+        const METRO_BGA = ['bucaramanga', 'floridablanca', 'giron', 'girón', 'piedecuesta'];
+
+        const mapped = data.map(r => {
+          const addr = r.address || {};
+          const city = addr.city || addr.town || addr.municipality || addr.county || '';
+          const deptName = addr.state || '';
+          return {
+            lat : parseFloat(r.lat),
+            lon : parseFloat(r.lon),
+            shortName: shortName(r.display_name),
+            city: city,
+            dept: deptName,
+          };
+        });
+
+        if (activeCity === 'bga') {
+          const filtered = mapped.filter(item => {
+            const cityNorm = (item.city || '')
+              .toLowerCase()
+              .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // quita tildes
+            return METRO_BGA.some(m =>
+              cityNorm.includes(m.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+            );
+          });
+          // Si el filtro deja resultados, usarlos. Si los descarta todos
+          // (ej. Nominatim no devolvió campo "city" en la dirección),
+          // devolver la lista original sin filtrar para no dejar al
+          // usuario sin sugerencias.
+          return filtered.length ? filtered : mapped;
+        }
+
+        return mapped;
+      } catch (err) {
+        if (err.name === 'AbortError') return []; // cancelado, no es error real
+        return [];
+      }
+    }
+
+    // Debounce genérico (500ms)
+    function debounce(fn, wait) {
+      let t;
+      return function (...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+
+    // Estado de ubicaciones confirmadas por el usuario (autocompletado)
+    // Si el usuario escribe pero NO selecciona una sugerencia, queda null
+    // y el cálculo exige seleccionar de la lista.
+    let originSelected = null; // { lat, lon, name }
+    let destSelected   = null;
+
+    function renderSuggestions(container, items, input, isOrigin) {
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!items.length) {
+        container.classList.remove('show');
+        return;
+      }
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'pax-suggestion-item';
+        const metaParts = [item.city, item.dept].filter(Boolean).join(', ');
+        div.innerHTML = `
+          <div class="pax-suggestion-name">${item.shortName}</div>
+          <div class="pax-suggestion-meta">${metaParts || 'Colombia'}</div>
+        `;
+        // mousedown en lugar de click: dispara ANTES del blur/input del input,
+        // eliminando la carrera de eventos que vaciaba la selección.
+        div.addEventListener('mousedown', (ev) => {
+          ev.preventDefault(); // evita que el input pierda foco antes de tiempo
+
+          const selected = { lat: item.lat, lon: item.lon, name: item.shortName };
+
+          // Marcar bandera ANTES de tocar input.value, para que el listener
+          // 'input' (si llega a dispararse) sepa que debe ignorar este cambio.
+          suppressNextInputClear = true;
+
+          // display_name completo guardado también, por si se necesita luego
+          input.value = item.shortName;
+          input.classList.add('confirmed');
+
+          if (isOrigin) {
+            originSelected = selected;
+          } else {
+            destSelected = selected;
+          }
+
+          console.log('ORIGIN_SELECTED', originSelected);
+          console.log('DEST_SELECTED', destSelected);
+
+          container.classList.remove('show');
+          container.innerHTML = '';
+          lastRouteData = null;
+          results.classList.remove('show');
+          hideFallback();
+        });
+        container.appendChild(div);
+      });
+
+      container.classList.add('show');
+    }
+
+    // Bandera para evitar que el listener 'input' borre la selección
+    // justo después de que el click en la sugerencia la haya asignado.
+    let suppressNextInputClear = false;
+
+    function bindAutocomplete(input, container, isOrigin) {
+      if (!input || !container) return;
+
+      const doSearch = debounce(async () => {
+        const q = input.value.trim();
+        if (q.length < 3) {
+          container.classList.remove('show');
+          return;
+        }
+        container.innerHTML = '<div class="pax-suggestion-loading">Buscando...</div>';
+        container.classList.add('show');
+
+        const items = await geocodeSuggest(q);
+        // Si el input cambió mientras esperábamos, ignorar resultado viejo
+        if (input.value.trim() !== q) return;
+
+        if (!items.length) {
+          container.innerHTML = '<div class="pax-suggestion-empty">Sin resultados — sigue escribiendo</div>';
+          return;
+        }
+        renderSuggestions(container, items, input, isOrigin);
+      }, 500);
+
+      input.addEventListener('input', () => {
+        // Si el cambio vino de seleccionar una sugerencia, no borrar
+        // la selección que se acaba de asignar.
+        if (suppressNextInputClear) {
+          suppressNextInputClear = false;
+          return;
+        }
+        // Cualquier edición manual del usuario invalida la selección previa
+        input.classList.remove('confirmed');
+        if (isOrigin) originSelected = null; else destSelected = null;
+        doSearch();
+      });
+
+      // Cerrar sugerencias al tocar fuera
+      document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !container.contains(e.target)) {
+          container.classList.remove('show');
+        }
+      });
+    }
+
+    // ── Ruteo con OSRM ────────────────────────────────────────────
+    // Devuelve { distanceKm, durationMin, geometry } o null
+    // Valida que la distancia sea razonable (evita rutas de cientos de
+    // km por error de geocoding — ej. confundir ciudades homónimas)
+    async function route(from, to) {
+      // Validación previa: distancia en línea recta razonable.
+      // Evita enviar a OSRM coordenadas de geocoding erróneo (ej. una
+      // ciudad homónima en otro departamento) que generarían rutas
+      // de cientos de km y tarifas absurdas.
+      const straightKm = haversineKm(from.lat, from.lon, to.lat, to.lon);
+      if (straightKm > 150) {
+        return { error: 'distance', straightKm };
+      }
+
+      const url = `https://router.project-osrm.org/route/v1/driving/`
+        + `${from.lon},${from.lat};${to.lon},${to.lat}`
+        + `?overview=full&geometries=geojson`;
+      const res  = await fetch(url);
+      const data = await res.json();
+      if (data.code !== 'Ok' || !data.routes.length) return null;
+      const r = data.routes[0];
+
+      // Validación posterior: la ruta real tampoco debe ser absurda
+      // (margen 2x sobre la línea recta cubre desvíos normales de vía)
+      const routeKm = r.distance / 1000;
+      if (routeKm > Math.max(straightKm * 3, 150)) {
+        return { error: 'distance', straightKm: routeKm };
+      }
+
+      return {
+        distanceKm  : routeKm,
+        durationMin : r.duration / 60,
+        geometry    : r.geometry,
+      };
+    }
+
+    // ── Mapa Leaflet ──────────────────────────────────────────────
+    function initMap(from, to, geometry) {
+      if (!window.L) return;  // Leaflet aún no cargó
+
+      if (mapEl) mapEl.classList.add('show');
+
+      // Inicializar mapa solo una vez
+      if (!leafletMap) {
+        leafletMap = L.map('pax-map', { zoomControl: true, attributionControl: false });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+        }).addTo(leafletMap);
+      }
+
+      // Limpiar capa anterior
+      if (routeLayer) { leafletMap.removeLayer(routeLayer); routeLayer = null; }
+
+      // Dibujar ruta
+      routeLayer = L.layerGroup().addTo(leafletMap);
+      L.geoJSON(geometry, {
+        style: { color: '#00f0ff', weight: 4, opacity: 0.85 }
+      }).addTo(routeLayer);
+
+      // Marcadores origen y destino
+      const iconOrig = L.divIcon({ html: '<div style="width:12px;height:12px;border-radius:50%;background:#00ff66;border:2px solid #fff;"></div>', iconSize:[12,12], iconAnchor:[6,6], className:'' });
+      const iconDest = L.divIcon({ html: '<div style="width:12px;height:12px;border-radius:50%;background:#ff003c;border:2px solid #fff;"></div>', iconSize:[12,12], iconAnchor:[6,6], className:'' });
+      L.marker([from.lat, from.lon], { icon: iconOrig }).addTo(routeLayer);
+      L.marker([to.lat,   to.lon  ], { icon: iconDest }).addTo(routeLayer);
+
+      // Ajustar vista a la ruta
+      const bounds = L.geoJSON(geometry).getBounds();
+      leafletMap.fitBounds(bounds, { padding: [20, 20] });
+
+      // Invalidar tamaño (necesario si el div estaba oculto)
+      setTimeout(() => leafletMap.invalidateSize(), 100);
+    }
+
+    // ── Render de resultados ──────────────────────────────────────
+    function renderResults(distKm, durationMin) {
+      // Guardar ruta actual — permite recalcular al cambiar vehículo sin re-llamar OSRM
+      lastRouteData = { distKm, durationMin };
+      const fmt = n => Math.round(n).toLocaleString('es-CO');
+
+      const ratesActive = getRates(activeVehicle);
+      const fareActive  = CKM.FareEngine.calculate(ratesActive, distKm, durationMin);
+      const rangeActive = CKM.FareEngine.estimateRange(fareActive);
+
+      const ratesCar  = getRates('car');
+      const ratesMoto = getRates('moto');
+      const fareCVal  = CKM.FareEngine.calculate(ratesCar,  distKm, durationMin);
+      const fareMVal  = CKM.FareEngine.calculate(ratesMoto, distKm, durationMin);
+      const rangeCVal = CKM.FareEngine.estimateRange(fareCVal);
+      const rangeMVal = CKM.FareEngine.estimateRange(fareMVal);
+
+      fareDisplay.innerHTML = `$${fmt(rangeActive.mid)}<small> COP</small>`;
+      fareRange.textContent = `Rango: $${fmt(rangeActive.low)} — $${fmt(rangeActive.high)} COP`;
+
+      if (fareCar)   fareCar.textContent   = `$${fmt(fareCVal)}`;
+      if (fareMoto)  fareMoto.textContent  = `$${fmt(fareMVal)}`;
+      if (rangeCar)  rangeCar.textContent  = `$${fmt(rangeCVal.low)}–$${fmt(rangeCVal.high)}`;
+      if (rangeMoto) rangeMoto.textContent = `$${fmt(rangeMVal.low)}–$${fmt(rangeMVal.high)}`;
+
+      const carIsCheaper = fareCVal <= fareMVal;
+      [{ el: cardCar, win: carIsCheaper }, { el: cardMoto, win: !carIsCheaper }].forEach(({ el, win }) => {
+        if (!el) return;
+        el.classList.toggle('card-selected', win);
+        const badge = el.querySelector('.pax-compare-badge');
+        if (win && !badge) {
+          const b = document.createElement('div');
+          b.className = 'pax-compare-badge';
+          b.textContent = 'MENOR TARIFA';
+          el.appendChild(b);
+        } else if (!win && badge) badge.remove();
+      });
+
+      if (compareEl) compareEl.classList.add('show');
+
+      const speed = durationMin > 0 ? (distKm / (durationMin / 60)).toFixed(0) : '--';
+      if (resDist)  resDist.textContent  = distKm.toFixed(1) + ' km';
+      if (resTime)  resTime.textContent  = Math.round(durationMin) + ' min';
+      if (resSpeed) resSpeed.textContent = speed + ' km/h';
+
+      results.classList.add('show');
+
+      CKM.Storage.save(CKM.Storage.KEYS.PAX, {
+        city: activeCity, vehicle: activeVehicle,
+        dist: distKm, minutes: durationMin,
+        origin: originInput ? originInput.value : '',
+        dest  : destInput   ? destInput.value   : '',
+      });
+    }
+
+    // ── Activar fallback manual ───────────────────────────────────
+    function showFallback(msg) {
+      isFallback = true;
+      if (routeStatus) {
+        routeStatus.textContent = msg || 'Sin conexion — calcula distancia manualmente';
+        routeStatus.className = 'pax-route-status show error';
+      }
+      if (fallbackEl) fallbackEl.style.display = 'block';
+    }
+
+    function hideFallback() {
+      isFallback = false;
+      if (fallbackEl) fallbackEl.style.display = 'none';
+      if (routeStatus) routeStatus.className = 'pax-route-status';
+    }
+
+    // ── Calcular con OSRM ─────────────────────────────────────────
+    async function calculateWithRouting() {
+      const origin = originInput ? originInput.value.trim() : '';
+      const dest   = destInput   ? destInput.value.trim()   : '';
+
+      // Diagnóstico temporal — verificar sincronización antes de validar
+      console.log('ORIGIN_SELECTED', originSelected);
+      console.log('DEST_SELECTED', destSelected);
+
+      // Si el usuario no escribió nada → modo fallback directo
+      if (!origin && !dest) {
+        showFallback('Ingresa origen y destino, o distancia manual');
+        return;
+      }
+
+      // Si el usuario escribió texto pero NO seleccionó una sugerencia
+      // de la lista de autocompletado → la selección de lista es opcional;
+      // se geocodifica el texto escrito directamente con geocode() (4 intentos).
+      if (origin && !originSelected) {
+        if (routeStatus) {
+          routeStatus.textContent = 'Buscando dirección de origen...';
+          routeStatus.className = 'pax-route-status show';
+        }
+        const found = await geocode(origin);
+        if (found) {
+          originSelected = found;
+        } else {
+          if (routeStatus) {
+            routeStatus.textContent = 'No se encontró la dirección de origen. Verifica o selecciona de la lista.';
+            routeStatus.className = 'pax-route-status show error';
+          }
+          return;
+        }
+      }
+      if (dest && !destSelected) {
+        if (routeStatus) {
+          routeStatus.textContent = 'Buscando dirección de destino...';
+          routeStatus.className = 'pax-route-status show';
+        }
+        const found = await geocode(dest);
+        if (found) {
+          destSelected = found;
+        } else {
+          if (routeStatus) {
+            routeStatus.textContent = 'No se encontró la dirección de destino. Verifica o selecciona de la lista.';
+            routeStatus.className = 'pax-route-status show error';
+          }
+          return;
+        }
+      }
+
+      if (routeStatus) {
+        routeStatus.textContent = 'Buscando ruta...';
+        routeStatus.className = 'pax-route-status show';
+      }
+      results.classList.remove('show');
+      hideFallback();
+
+      try {
+        // Usar coordenadas YA CONFIRMADAS por el autocompletado —
+        // no se vuelve a geocodificar por texto.
+        let from = originSelected;
+        let to   = destSelected;
+
+        // Si no hay origen seleccionado, intentar GPS actual
+        if (!from && navigator.geolocation) {
+          if (routeStatus) routeStatus.textContent = 'Buscando GPS...';
+          await new Promise(resolve => {
+            navigator.geolocation.getCurrentPosition(pos => {
+              from = { lat: pos.coords.latitude, lon: pos.coords.longitude, name: 'Tu ubicación' };
+              resolve();
+            }, resolve, { timeout: 5000 });
+          });
+        }
+
+        if (!from || !to) {
+          showFallback('Seleccione una ubicación de la lista, o use el modo manual.');
+          return;
+        }
+
+        // Mostrar confirmación de ubicaciones encontradas
+        const confirmMsg = [
+          `Origen: ${from.name}`,
+          `Destino: ${to.name}`,
+        ].join(' · ');
+        if (routeStatus) {
+          routeStatus.textContent = confirmMsg;
+          routeStatus.className = 'pax-route-status show';
+        }
+
+        // Calcular ruta con OSRM
+        const routeData = await route(from, to);
+
+        if (!routeData) {
+          showFallback('No se pudo trazar la ruta. Verifica las direcciones o ingresa la distancia manualmente.');
+          return;
+        }
+        if (routeData.error === 'distance') {
+          showFallback(`La distancia calculada (${Math.round(routeData.straightKm)} km) parece incorrecta. Verifica las direcciones o usa el modo manual.`);
+          return;
+        }
+
+        // Ocultar estado de carga, mostrar confirmación final
+        if (routeStatus) {
+          routeStatus.textContent = 'Ruta encontrada';
+          routeStatus.className = 'pax-route-status show';
+          setTimeout(() => { if (routeStatus) routeStatus.className = 'pax-route-status'; }, 2000);
+        }
+
+        // Dibujar mapa
+        initMap(from, to, routeData.geometry);
+
+        // Calcular tarifa con distancia real
+        renderResults(routeData.distanceKm, routeData.durationMin);
+
+      } catch (err) {
+        // Sin internet u otro error → fallback manual
+        showFallback('Sin conexion — calcula distancia manualmente');
+      }
+    }
+
+    // ── Calcular en modo fallback (manual) ────────────────────────
+    function calculateManual() {
+      const dist    = parseFloat(paxDist.value) || 0;
+      const minutes = parseFloat(paxTime.value) || 0;
+      if (mapEl) mapEl.classList.remove('show');
+      renderResults(dist, minutes);
+    }
+
+    // ── Cargar preferencias ───────────────────────────────────────
+    function loadPrefs() {
+      const p = CKM.Storage.load(CKM.Storage.KEYS.PAX);
+      if (!p) return;
+      if (p.city) {
+        activeCity = p.city;
+        cityChips.forEach(c => c.classList.toggle('active', c.dataset.city === activeCity));
+      }
+      if (p.vehicle) setVehicle(p.vehicle);
+      if (p.dist)    paxDist.value = Math.round(parseFloat(p.dist) * 10) / 10;
+      if (p.minutes) paxTime.value = Math.round(parseFloat(p.minutes));
+      // Origen y destino NO se restauran: cada apertura debe arrancar
+      // con origen = "mi ubicación" (vacío/GPS) y destino vacío, nunca
+      // con la última búsqueda guardada.
+      applyPreset(activeCity);
+    }
+
+    // ── Eventos ───────────────────────────────────────────────────
+    function bindEvents() {
+      // Botón CALCULAR — usa OSRM si hay texto, manual si está en fallback
+      calcBtn.addEventListener('click', () => {
+        if (isFallback) {
+          calculateManual();
+        } else {
+          calculateWithRouting();
+        }
+      });
+
+      if (paxCarBtn)  paxCarBtn.addEventListener('click',  () => setVehicle('car'));
+      if (paxMotoBtn) paxMotoBtn.addEventListener('click', () => setVehicle('moto'));
+
+      cityChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          cityChips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeCity = chip.dataset.city;
+          applyPreset(activeCity);
+          results.classList.remove('show');
+        });
+      });
+
+      // Recalcular automáticamente al cambiar inputs manuales si está en fallback
+      if (paxDist) paxDist.addEventListener('input', () => { if (isFallback) results.classList.remove('show'); });
+      if (paxTime) paxTime.addEventListener('input', () => { if (isFallback) results.classList.remove('show'); });
+
+      // Limpiar resultados al cambiar origen o destino + autocompletado
+      const originSuggestEl = document.getElementById('pax-origin-suggestions');
+      const destSuggestEl   = document.getElementById('pax-dest-suggestions');
+      bindAutocomplete(originInput, originSuggestEl, true);
+      bindAutocomplete(destInput,   destSuggestEl,   false);
+
+      if (originInput) originInput.addEventListener('input', () => {
+        lastRouteData = null;
+        results.classList.remove('show');
+        hideFallback();
+      });
+      if (destInput) destInput.addEventListener('input', () => {
+        lastRouteData = null;
+        results.classList.remove('show');
+        hideFallback();
+      });
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    function init() {
+      applyPreset('bga');
+      loadPrefs();
+      captureUserGps();  // captura silenciosa al abrir el módulo
+
+      // Escuchar selección de origen vía botón GPS (initPassengerUX)
+      document.addEventListener('ckm:gps-origin', (e) => {
+        originSelected = { lat: e.detail.lat, lon: e.detail.lon, name: e.detail.name };
+        lastRouteData = null;
+        results.classList.remove('show');
+        hideFallback();
+      });
+    }
+
+    return { init, bindEvents };
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  CKM.App — orquestador principal
+  //  Controla navegación entre pantallas y arranque
+  // ═══════════════════════════════════════════════════════════════
+  CKM.App = (function () {
+
+    function init() {
+      // Inicializar módulos
+      CKM.Driver.bindEvents();
+      CKM.Passenger.init();
+      CKM.Passenger.bindEvents();
+
+      // Si hay viaje activo de conductor → ir directo a pantalla conductor
+      const tripActivo = CKM.Driver.init();
+      if (tripActivo) {
+        CKM.Router.go('driver');
+        return;
+      }
+
+      // Sin viaje activo → mostrar selección
+      CKM.Router.go('profile');
+
+      // Navegación de selección de perfil
+      document.getElementById('btn-select-driver').addEventListener('click', () => {
+        CKM.Router.go('driver');
+      });
+      document.getElementById('btn-select-passenger').addEventListener('click', () => {
+        CKM.Router.go('passenger');
+      });
+
+      // Botón volver al logo
+      document.getElementById('driver-back-btn').addEventListener('click', () => {
+        CKM.Router.go('profile');
+      });
+      document.getElementById('passenger-back-btn').addEventListener('click', () => {
+        CKM.Router.go('profile');
+      });
+    }
+
+    return { init };
+  })();
+
+  // ── ARRANQUE ──────────────────────────────────────────────────
+  CKM.App.init();
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════
+     PWA — Manifest dinámico + Service Worker
+     POLÍTICA DE CACHE (desarrollo seguro):
+     - updateViaCache: 'none'  → el browser NUNCA cachea sw.js
+     - El SW recibe ?v= con timestamp → fuerza re-evaluación
+     - GPS (watchPosition) es API de hardware, los SW no la interceptan
+     - Este bloque es completamente independiente del IIFE principal
+══════════════════════════════════════════ -->
+<script>
+  (function initPWA() {
+
+    // ── Manifest ───────────────────────────────────────────────
+    // En Netlify el manifest.json se sirve como archivo estático.
+    // El <link rel="manifest"> del <head> ya apunta a manifest.json.
+    // NO usar Blob URL — Netlify (y Chrome) rechazan blob: como manifest.
+
+    // ── Service Worker ─────────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      const SW_VERSION = '4.4.0';
+      navigator.serviceWorker
+        .register(`sw.js?v=${SW_VERSION}`, { updateViaCache: 'none' })
+        .then(reg => {
+          if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            if (nw) nw.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                console.info('[CKM] SW actualizado. Recarga para aplicar.');
+              }
+            });
+          });
+        })
+        .catch(() => {}); // sw.js aún no existe — silencioso
+    }
+
+  })();
+</script>
+<!-- ══════════════════════════════════════════
+     PASAJERO UX — GPS origen + flujo nuevo
+     Módulo independiente, no toca CKM.*
+══════════════════════════════════════════ -->
+<script>
+(function initPassengerUX() {
+  'use strict';
+
+  const originInput  = document.getElementById('pax-origin-text');
+  const destInput    = document.getElementById('pax-dest-text');
+  const gpsBtn       = document.getElementById('pax-gps-btn');
+  const gpsStatus    = document.getElementById('pax-gps-status');
+  const gpsText      = document.getElementById('pax-gps-text');
+  const resultsCityEl = document.getElementById('pax-results-city');
+
+  // Esperar a que CKM.App arranque (el IIFE principal ya corrió)
+  // Conectar el botón GPS del pasajero
+  if (gpsBtn) {
+    gpsBtn.addEventListener('click', function () {
+      if (!navigator.geolocation) {
+        gpsStatus.style.display = 'block';
+        gpsText.textContent = 'No se pudo obtener GPS';
+        if (originInput) originInput.placeholder = 'GPS no disponible';
+        setTimeout(() => { gpsStatus.style.display = 'none'; }, 2500);
+        return;
+      }
+      gpsStatus.style.display = 'block';
+      gpsText.textContent = 'Buscando GPS...';
+
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          if (originInput) {
+            originInput.value = 'Mi ubicación actual';
+            originInput.classList.add('confirmed');
+            originInput.dataset.lat = lat;
+            originInput.dataset.lon = lon;
+          }
+          gpsText.textContent = 'Ubicación encontrada';
+          // Notificar a CKM.Passenger sin acoplar módulos directamente
+          document.dispatchEvent(new CustomEvent('ckm:gps-origin', {
+            detail: { lat, lon, name: 'Mi ubicación actual' }
+          }));
+          setTimeout(() => { gpsStatus.style.display = 'none'; }, 2000);
+        },
+        function () {
+          gpsText.textContent = 'No se pudo obtener GPS';
+          if (originInput) originInput.placeholder = 'Escribe tu origen manualmente';
+          setTimeout(() => { gpsStatus.style.display = 'none'; }, 2500);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    });
+  }
+
+  // Mostrar ciudad activa en el resultado
+  // Observa cambios en los chips sin tocar CKM.Passenger
+  const chips = document.querySelectorAll('.city-chip');
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      if (resultsCityEl) {
+        const presets = {
+          bga: 'Bucaramanga', bog: 'Bogota', med: 'Medellin',
+          clo: 'Cali', baq: 'Barranquilla', custom: 'Personalizada'
+        };
+        resultsCityEl.textContent = presets[chip.dataset.city] || '';
+      }
+    });
+  });
+
+  // Inicializar ciudad en resultado
+  if (resultsCityEl) resultsCityEl.textContent = 'Bucaramanga';
+
+})();
+</script>
+<!-- ══════════════════════════════════════════
+     CKM.Vehicle — selector carro/moto
+     Módulo independiente, no toca CKM.Driver
+══════════════════════════════════════════ -->
+<script>
+(function initVehicle() {
+  'use strict';
+
+  const carBtn  = document.getElementById('vehicle-car');
+  const motoBtn = document.getElementById('vehicle-moto');
+  if (!carBtn || !motoBtn) return;
+
+  // Referencias a inputs que CKM.Driver.getRates() lee
+  const baseInput    = document.getElementById('baseRate');
+  const kmInput      = document.getElementById('kmRate');
+  const minInput     = document.getElementById('minRate');
+  const minFareInput = document.getElementById('minFare');
+
+  // Escribir tarifas de CKM.Fares en los inputs del conductor
+  // CKM.Driver.getRates() los lee → CKM.FareEngine.calculate() los usa
+  // El conductor puede seguir editando manualmente — cada input change
+  // guarda en Storage.KEYS.RATES como siempre.
+  function applyFaresToInputs(city, vehicle) {
+    const t = CKM.Fares.getTariff(city, vehicle);
+    if (baseInput)    { baseInput.value    = t.base;    baseInput.dispatchEvent(new Event('input')); }
+    if (kmInput)      { kmInput.value      = t.perKm;   kmInput.dispatchEvent(new Event('input')); }
+    if (minInput)     { minInput.value     = t.perMin;  minInput.dispatchEvent(new Event('input')); }
+    if (minFareInput) { minFareInput.value = t.minFare; minFareInput.dispatchEvent(new Event('input')); }
+  }
+
+  function setVehicle(vehicle, applyRates) {
+    CKM.Fares.setVehicle(vehicle);
+    carBtn.classList.toggle('active',  vehicle === 'car');
+    motoBtn.classList.toggle('active', vehicle === 'moto');
+    if (applyRates) applyFaresToInputs(CKM.Fares.getCity(), vehicle);
+    persistPref();
+  }
+
+  function persistPref() {
+    CKM.Storage.save(CKM.Storage.KEYS.FARES_PREF, {
+      city   : CKM.Fares.getCity(),
+      vehicle: CKM.Fares.getVehicle(),
+    });
+  }
+
+  // Cargar preferencia guardada
+  const saved       = CKM.Storage.load(CKM.Storage.KEYS.FARES_PREF);
+  const savedVehicle = (saved && saved.vehicle) ? saved.vehicle : 'car';
+  const savedCity    = (saved && saved.city)    ? saved.city    : 'bga';
+
+  CKM.Fares.setVehicle(savedVehicle);
+  CKM.Fares.setCity(savedCity);
+
+  // Solo actualizar visual al arrancar, no sobreescribir tarifas
+  // manuales que CKM.Driver.loadRates() ya cargó de Storage.KEYS.RATES
+  carBtn.classList.toggle('active',  savedVehicle === 'car');
+  motoBtn.classList.toggle('active', savedVehicle === 'moto');
+
+  // Eventos vehículo — aplica tarifas al cambiar
+  carBtn.addEventListener('click',  () => setVehicle('car',  true));
+  motoBtn.addEventListener('click', () => setVehicle('moto', true));
+
+  // Exponer para que el selector de ciudad también pueda llamarlo
+  window._ckmApplyFares = applyFaresToInputs;
+  window._ckmPersistFarePref = persistPref;
+})();
+</script>
+
+<!-- ══════════════════════════════════════════
+     CKM.Theme — modo claro/oscuro
+     No toca ningún módulo CKM.*
+══════════════════════════════════════════ -->
+<script>
+(function initTheme() {
+  'use strict';
+
+  const KEY     = 'ckm_theme';
+  const root    = document.documentElement;
+  const toggles = document.querySelectorAll('.theme-toggle');
+
+  // SVG luna (tema oscuro activo → icono para cambiar a claro)
+  const ICON_MOON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  // SVG sol (tema claro activo → icono para cambiar a oscuro)
+  const ICON_SUN  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    try { localStorage.setItem(KEY, theme); } catch(e) {}
+    // Actualizar icono: en oscuro mostrar sol (para pasar a claro), en claro mostrar luna
+    const icon = theme === 'dark' ? ICON_SUN : ICON_MOON;
+    toggles.forEach(btn => { btn.innerHTML = icon; });
+  }
+
+  function toggle() {
+    const current = root.getAttribute('data-theme') || 'dark';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  }
+
+  // Cargar preferencia — oscuro por defecto
+  const saved = (function(){ try { return localStorage.getItem(KEY); } catch(e){ return null; } })();
+  applyTheme(saved === 'light' ? 'light' : 'dark');
+
+  toggles.forEach(btn => btn.addEventListener('click', toggle));
+})();
+</script>
+<!-- ══════════════════════════════════════════
+     FareText + UX Nav + Theme profile btn
+     Módulo independiente — no toca CKM.*
+══════════════════════════════════════════ -->
+<script>
+(function initDriverCity() {
+  'use strict';
+
+  // Esperar a que initVehicle haya expuesto _ckmApplyFares
+  setTimeout(function() {
+    const chips = document.querySelectorAll('#driver-city-bar .driver-city-chip');
+    if (!chips.length) return;
+
+    // Restaurar chip activo desde preferencia guardada
+    const saved = CKM.Storage.load(CKM.Storage.KEYS.FARES_PREF);
+    const activeCity = (saved && saved.city) ? saved.city : 'bga';
+    chips.forEach(c => c.classList.toggle('active', c.dataset.city === activeCity));
+    CKM.Fares.setCity(activeCity);
+
+    chips.forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        const city = chip.dataset.city;
+        CKM.Fares.setCity(city);
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+
+        // Aplicar tarifas de ciudad+vehículo actual a los inputs del conductor
+        if (window._ckmApplyFares) {
+          _ckmApplyFares(city, CKM.Fares.getVehicle());
+        }
+        if (window._ckmPersistFarePref) _ckmPersistFarePref();
+      });
+    });
+  }, 80);
+})();
+
+(function initDisplayFix() {
+  'use strict';
+
+  // ── 1. FareText: sincronizar con lo que CKM.Driver calcula ──
+  // CKM.Driver llama animateSlots() que escribe en #slotContainer.
+  // Leemos ese resultado con MutationObserver y lo mostramos en #fareText.
+  const fareText    = document.getElementById('fareText');
+  const slotCont    = document.getElementById('slotContainer');
+
+  // ── Observer único — reconstruye el número desde los digit-tracks
+  // y actualiza fareText + dataset.fare en la misma pasada.
+  // Solo escucha childList/subtree (cambios reales de contenido),
+  // NUNCA attributes — así escribir dataset.fare no puede volver a
+  // disparar este mismo observer (sin esto, dos observers cruzados
+  // entraban en bucle de retroalimentación al reconstruir los slots,
+  // ej: en stopTrip()/resetTrip(), congelando la app).
+  if (slotCont) {
+    const syncFare = function() {
+      const tracks = slotCont.querySelectorAll('.digit-track');
+      if (!tracks.length) return;
+      let numStr = '';
+      tracks.forEach(function(track) {
+        const t = track.style.transform || '';
+        if (track.children.length === 1) {
+          numStr += track.children[0].textContent || '';
+        } else {
+          const match = t.match(/translateY\(-?([\d.]+)rem\)/);
+          if (match) {
+            const digit = Math.round(parseFloat(match[1]) / 3.2);
+            numStr += digit;
+          } else {
+            numStr += '0';
+          }
+        }
+      });
+      if (!numStr) return;
+      if (fareText) fareText.textContent = numStr;
+      slotCont.dataset.fare = numStr; // solo lectura externa; nadie observa attributes
+    };
+
+    const fareObs = new MutationObserver(syncFare);
+    fareObs.observe(slotCont, { childList: true, subtree: true });
+
+    // Trigger inicial
+    const initFare = document.getElementById('minFare');
+    if (fareText && initFare) {
+      const v = parseFloat(initFare.value) || 4500;
+      fareText.textContent = Math.round(v).toLocaleString('es-CO');
+    }
+  }
+
+  // ── 3. UX Nav — CAMBIAR MODO buttons ──
+  // Se conectan después de que CKM.App.init() pone CKM.Router disponible
+  setTimeout(function() {
+    const uxfix    = document.getElementById('uxfix');
+    const uxfixPax = document.getElementById('uxfix-pax');
+    function goProfile() {
+      if (window.CKM && CKM.Router) CKM.Router.go('profile');
+    }
+    if (uxfix)    uxfix.addEventListener('click',    goProfile);
+    if (uxfixPax) uxfixPax.addEventListener('click', goProfile);
+  }, 50);
+
+  // ── 4. Tema en pantalla de perfil — botón en profile-version ──
+  // Solo añadir si no existe ya
+  setTimeout(function() {
+    const ver = document.querySelector('.profile-version');
+    if (ver && !document.getElementById('theme-toggle-profile')) {
+      const btn = document.createElement('button');
+      btn.id = 'theme-toggle-profile';
+      btn.className = 'theme-toggle';
+      btn.title = 'Cambiar tema';
+      btn.style.cssText = 'margin: 8px auto 0; display:flex;';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      ver.after(btn);
+      btn.addEventListener('click', function() {
+        const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('ckm_theme', next); } catch(e) {}
+      });
+    }
+  }, 60);
+
+})();
+</script>
+
+</body>
+</html>
