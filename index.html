@@ -1764,26 +1764,17 @@
 
         <!-- CONDUCTOR -->
         <button class="profile-card driver" id="btn-select-driver" type="button">
-          <svg class="profile-card-svg" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="21" cy="21" r="15" stroke="#ffaa00" stroke-width="2" fill="none"/>
-            <circle cx="21" cy="21" r="5.5" stroke="#ffaa00" stroke-width="2" fill="none"/>
-            <line x1="21" y1="6"  x2="21" y2="15.5" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
-            <line x1="21" y1="26.5" x2="21" y2="36" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
-            <line x1="6"  y1="21" x2="15.5" y2="21" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
-            <line x1="26.5" y1="21" x2="36" y2="21" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px;width:48px;height:48px;margin:0 auto 12px;pointer-events:none;">
+            <img src="assets/icon-auto.png" alt="auto" style="width:22px;height:22px;object-fit:contain;pointer-events:none;">
+            <img src="assets/icon-moto.png" alt="moto" style="width:22px;height:22px;object-fit:contain;pointer-events:none;">
+          </div>
           <div class="profile-card-title">CONDUCTOR</div>
           <div class="profile-card-desc">Medición GPS inteligente de tus viajes.</div>
         </button>
 
         <!-- PASAJERO -->
         <button class="profile-card passenger" id="btn-select-passenger" type="button">
-          <svg class="profile-card-svg" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="21" cy="15" r="6" stroke="#00f0ff" stroke-width="2" fill="none"/>
-            <path d="M21 21 C21 21 10 30 10 36 Q10 40 21 40 Q32 40 32 36 C32 30 21 21 21 21Z" stroke="#00f0ff" stroke-width="2" fill="none" stroke-linejoin="round"/>
-            <circle cx="21" cy="15" r="2.5" fill="#00f0ff"/>
-            <line x1="8" y1="38" x2="34" y2="38" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5"/>
-          </svg>
+          <img src="assets/icon-pasajero.png" alt="pasajero" class="profile-card-svg" style="object-fit:contain;pointer-events:none;">
           <div class="profile-card-title">PASAJERO</div>
           <div class="profile-card-desc">Calcula tu tarifa antes de viajar.</div>
         </button>
